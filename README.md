@@ -52,3 +52,4 @@ All persisted documents should include:
 - `createdAt` / `updatedAt` (server timestamps)
 
 Migrations tooling will live in `tools/migrations/`.
+
