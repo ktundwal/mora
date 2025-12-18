@@ -118,3 +118,17 @@ Add your Vercel domain to Firebase Auth:
 1. **Firestore Timestamps:** When reading from Firestore, convert `Timestamp` objects to ISO strings before passing to React components.
 2. **Subcollection rules:** Write parent document first (not in batch) so subcollection rules can verify parent ownership.
 3. **lightningcss on CI:** If `npm ci` fails on Linux, delete `package-lock.json` and regenerate on Linux or run `npm install` with `--platform=linux`.
+
+---
+
+## Documentation Ownership
+
+| File | Purpose | Update When |
+|------|---------|-------------|
+| `docs/NEXT_STEPS.md` | Task tracking (done/todo) | Any task completed or added |
+| `docs/SETUP.md` | Environment & deployment setup | Infra, config, or tooling changes |
+| `docs/WHAT_AND_WHY.md` | Product requirements (PRD) | Feature scope changes |
+| `.github/prompts/*.prompt.md` | Workflow runbooks for AI | Process or workflow changes |
+| `.github/copilot-instructions.md` | AI context (tech stack, principles) | Fundamental architecture changes only |
+
+**Rule:** Never duplicate information across docs. Each doc has one job. Reference other docs instead of copying.
