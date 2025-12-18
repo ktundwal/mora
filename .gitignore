@@ -5,8 +5,11 @@ node_modules/
 .next/
 out/
 dist/
-lib/
 *.tsbuildinfo
+
+# TypeScript compiled output (functions)
+apps/functions/lib/
+packages/*/lib/
 
 # env (keep examples)
 .env

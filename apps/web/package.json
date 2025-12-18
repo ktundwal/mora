@@ -18,19 +18,21 @@
     "@mora/core": "*",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "firebase": "^12.7.0",
     "lucide-react": "^0.469.0",
     "next": "16.0.10",
     "react": "19.2.1",
     "react-dom": "19.2.1",
     "tailwind-merge": "^2.6.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "zustand": "^5.0.9"
   },
   "devDependencies": {
+    "@playwright/test": "^1.55.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@playwright/test": "^1.55.0",
     "eslint": "^9",
     "eslint-config-next": "16.0.10",
     "jsdom": "^26.0.0",
