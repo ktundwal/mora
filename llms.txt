@@ -1,0 +1,73 @@
+# Mora - Relationship Conflict Management App
+
+> AI-powered relationship tool helping anxious partners manage conflict and communicate better.
+
+## Project Summary
+
+Mora is a web application that helps "Anxious-Preoccupied" partners in relationships:
+- Parse and analyze conversation screenshots/exports
+- Generate "Unpacks" - AI analysis of emotional dynamics
+- Draft thoughtful responses to difficult messages
+- Track relationship patterns over time
+
+## Tech Stack
+
+- Frontend: Next.js 15, React 19, Tailwind CSS v4, shadcn/ui
+- State: Zustand with persist middleware
+- Backend: Firebase (Auth, Firestore, Cloud Functions 2nd Gen)
+- Shared: npm workspaces monorepo with @mora/core package
+- Testing: Vitest (unit), Playwright (E2E)
+
+## Business Model
+
+- Free Tier: 3 Unpacks/month, basic drafting
+- Mora Pro ($15/mo): Unlimited Unpacks, advanced features
+
+## Core Value Proposition
+
+Moving users from "Fear of Losing" to "Fear of Hurting"
+
+## Key Documents
+
+- [docs/WHAT_AND_WHY.md](docs/WHAT_AND_WHY.md) - Product requirements
+- [docs/NEXT_STEPS.md](docs/NEXT_STEPS.md) - Current priorities
+- [docs/STACK.md](docs/STACK.md) - Technical decisions
+- [packages/core/src/types.ts](packages/core/src/types.ts) - Data models
+
+## Development
+
+```bash
+npm install          # Install all workspaces
+npm run dev          # Start Next.js dev server
+npm run verify       # Typecheck + lint + build + test
+npm run test:e2e     # Run Playwright tests
+```
+
+## Architecture
+
+```
+apps/
+  web/               # Next.js frontend
+  functions/         # Firebase Cloud Functions
+packages/
+  core/              # Shared types, parsers, business logic
+infra/
+  firebase/          # Firestore rules, indexes, hosting config
+docs/                # Product and technical documentation
+```
+
+## Firestore Data Model
+
+- `users/{uid}` - User profile (includes isPro boolean)
+- `conversations/{conversationId}` - Parsed conversations
+  - `messages/{messageId}` - Individual messages
+  - `artifacts/{artifactId}` - Screenshots, exports
+  - `unpacks/{unpackId}` - AI analysis results
+
+## Critical Rules
+
+1. Types defined in `packages/core`, imported everywhere
+2. AI/Stripe calls only in Cloud Functions, never in web
+3. Strict TypeScript - no `any` types
+4. Use shadcn/ui components, not custom primitives
+5. All user data scoped by `uid` for security

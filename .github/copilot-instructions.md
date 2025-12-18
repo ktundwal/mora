@@ -1,3 +1,7 @@
+---
+description: 'Global coding standards and product context for Mora development'
+---
+
 # Mora Copilot Instructions
 
 You are an expert Senior Full Stack Engineer and Product Founder building **Mora**, a relationship conflict management app.

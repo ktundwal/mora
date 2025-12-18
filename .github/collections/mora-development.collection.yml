@@ -1,0 +1,90 @@
+name: 'Mora Feature Development'
+description: 'Complete workflow for developing features in Mora - from planning through deployment'
+tags: ['mora', 'development', 'workflow']
+
+display:
+  ordering: 'manual'
+
+items:
+  # Planning Phase
+  - kind: agent
+    path: agents/plan-mode.agent.md
+    title: 'Plan Mode'
+    description: 'Strategic planning and research without writing code'
+  
+  - kind: prompt
+    path: prompts/1_PLAN.prompt.md
+    title: 'Feature Planning'
+    description: 'Turn a feature idea into concrete tasks'
+  
+  - kind: prompt
+    path: prompts/7_SPEC.prompt.md
+    title: 'Specification Generator'
+    description: 'Create formal specs before implementation'
+
+  # Design Phase
+  - kind: prompt
+    path: prompts/2_ARCHITECT.prompt.md
+    title: 'Architecture Design'
+    description: 'Design data models, APIs, and components'
+  
+  # Implementation Phase
+  - kind: agent
+    path: agents/mora-dev.agent.md
+    title: 'Mora Dev'
+    description: 'Senior engineer assistant for implementation'
+  
+  - kind: prompt
+    path: prompts/3_CODE.prompt.md
+    title: 'Implementation'
+    description: 'Vibe coding with test-first approach'
+  
+  # Quality Phase
+  - kind: agent
+    path: agents/reviewer.agent.md
+    title: 'Reviewer'
+    description: 'Code review and security audit'
+  
+  - kind: prompt
+    path: prompts/4_REVIEW.prompt.md
+    title: 'Code Review'
+    description: 'Review checklist before merge'
+  
+  # Testing Phase
+  - kind: prompt
+    path: prompts/6_TEST_E2E.prompt.md
+    title: 'E2E Testing'
+    description: 'Run and debug Playwright tests'
+  
+  # Deployment Phase
+  - kind: prompt
+    path: prompts/5_DEPLOY.prompt.md
+    title: 'Deployment'
+    description: 'Ship to production safely'
+  
+  # Tracking Phase
+  - kind: prompt
+    path: prompts/0_STATUS.prompt.md
+    title: 'Status Check'
+    description: 'Track progress and identify next priorities'
+  
+  # Instructions (auto-apply)
+  - kind: instructions
+    path: instructions/typescript.instructions.md
+    title: 'TypeScript Standards'
+    description: 'Strict types, naming conventions'
+  
+  - kind: instructions
+    path: instructions/react.instructions.md
+    title: 'React Patterns'
+    description: 'Next.js, shadcn/ui, Zustand'
+  
+  - kind: instructions
+    path: instructions/firebase.instructions.md
+    title: 'Firebase Patterns'
+    description: 'Firestore, Auth, Cloud Functions'
+  
+  - kind: instructions
+    path: instructions/testing.instructions.md
+    title: 'Testing Standards'
+    description: 'Vitest and Playwright patterns'
