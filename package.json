@@ -29,8 +29,5 @@
   },
   "volta": {
     "node": "20.18.0"
-  },
-  "dependencies": {
-    "lightningcss-darwin-arm64": "^1.30.2"
   }
 }
