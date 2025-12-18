@@ -1,4 +1,7 @@
+"use client";
+
 import { MessageCircle, Shield, Heart } from "lucide-react";
+import { AuthTest } from "@/components/auth-test";
 
 export default function Home() {
   return (
@@ -21,13 +24,10 @@ export default function Home() {
             to <span className="font-semibold text-green-600">fear of hurting</span>.
           </p>
 
-          {/* CTA Button - Will become Google Sign In */}
-          <button
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-zinc-900 px-8 text-base font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
-            disabled
-          >
-            Coming Soon
-          </button>
+          {/* Auth Test Component */}
+          <div className="mb-12">
+            <AuthTest />
+          </div>
 
           {/* Features Preview */}
           <div className="mt-16 grid gap-8 sm:grid-cols-3">
