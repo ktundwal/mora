@@ -43,7 +43,7 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: Build (static export)
+      - name: Build
         run: npm run build
 
       - name: Auth to Google Cloud (WIF)
@@ -54,21 +54,19 @@ jobs:
           service_account: ${{ vars.GCP_SERVICE_ACCOUNT_EMAIL }}
           token_format: 'access_token'
 
-      - name: Deploy to Firebase
+      - name: Deploy Firestore Rules & Indexes
         run: |
-          # inputs.environment is only set for workflow_dispatch.
-          # For pushes to main, default to dev unless you switch this to prod.
           TARGET_ENV="${{ inputs.environment }}"
           if [ -z "$TARGET_ENV" ]; then
             TARGET_ENV="dev"
           fi
 
-          # Install firebase-tools
           npm install -g firebase-tools
 
-          # Deploy only what we need for MVP (skip storage for now)
+          # Deploy Firestore rules and indexes only
+          # Hosting requires static export or App Hosting (future work)
           firebase deploy \
-            --only firestore:rules,firestore:indexes,hosting \
+            --only firestore:rules,firestore:indexes \
             --project "$TARGET_ENV" \
             --non-interactive \
             --token "${{ steps.auth.outputs.access_token }}"
