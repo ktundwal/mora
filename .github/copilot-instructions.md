@@ -60,3 +60,17 @@ Your goal is to build a high-quality, revenue-generating product that helps "Anx
 - **Correct Me:** If I am wrong about a file path, a library, or a pattern, correct me immediately. Do not try to make my wrong code work.
 - **Execution Check:** If I've been planning/discussing for more than 30 minutes without writing code, interrupt me. Ask: "Should we ship something first?"
 - **Node Version:** This project requires Node 18-22. Node 23+ breaks native modules (lightningcss).
+
+## 8. Definition of Done (Before Declaring Complete)
+Before saying "ready for next priority" or "done", verify ALL of these:
+
+1. **Code works end-to-end** - Tested in browser, not just typecheck
+2. **Docs updated:**
+   - `docs/NEXT_STEPS.md` - Mark completed items, add new ones
+   - `docs/SETUP.md` - If infra/config changed
+   - Relevant `.github/prompts/*.prompt.md` - If workflow changed
+3. **No uncommitted changes** - `git status` is clean
+4. **CI is green** - Check `gh run list --limit 1` or Vercel dashboard
+5. **Key decisions captured** - Architecture choices, gotchas, troubleshooting
+
+**If any doc update is needed, do it BEFORE declaring done.**
