@@ -1,3 +1,9 @@
+---
+description: 'Implement a task following the Vibe Protocol (Plan → Test → Code → Verify)'
+agent: 'agent'
+tools: ['codebase', 'editFiles', 'runCommands', 'runTests', 'problems', 'terminalLastCommand']
+---
+
 # Implementation (Vibe Coding)
 
 **Role:** Senior Full Stack Engineer

@@ -1,3 +1,9 @@
+---
+description: 'Check project status, run verification, and identify next priorities'
+agent: 'agent'
+tools: ['codebase', 'runCommands', 'terminalLastCommand', 'problems', 'changes']
+---
+
 # Project Status Check
 
 **Role:** Project Manager

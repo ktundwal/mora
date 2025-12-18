@@ -1,3 +1,9 @@
+---
+description: 'Deploy code to dev or production with pre-flight checks'
+agent: 'agent'
+tools: ['runCommands', 'codebase', 'terminalLastCommand']
+---
+
 # Deployment
 
 **Role:** DevOps Engineer

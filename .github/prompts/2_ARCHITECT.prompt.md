@@ -1,3 +1,9 @@
+---
+description: 'Design data models, APIs, and component architecture for a feature'
+agent: 'agent'
+tools: ['codebase', 'search']
+---
+
 # System Architecture
 
 **Role:** Senior System Architect

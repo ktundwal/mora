@@ -1,3 +1,9 @@
+---
+description: 'Review code changes for security, architecture, and business logic'
+agent: 'agent'
+tools: ['codebase', 'changes', 'runCommands', 'problems']
+---
+
 # Code Review & QA
 
 **Role:** Tech Lead & Security Auditor

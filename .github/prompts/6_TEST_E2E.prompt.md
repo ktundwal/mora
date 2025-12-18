@@ -1,3 +1,9 @@
+---
+description: 'Run Playwright E2E tests and debug failures'
+agent: 'agent'
+tools: ['runCommands', 'runTests', 'codebase', 'terminalLastCommand', 'problems']
+---
+
 # End-to-End Testing
 
 **Role:** QA Engineer

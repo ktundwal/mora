@@ -1,3 +1,9 @@
+---
+description: 'Turn a feature idea into a concrete execution plan with tasks'
+agent: 'agent'
+tools: ['codebase', 'search', 'editFiles']
+---
+
 # Feature Planning
 
 **Role:** Product Manager & Engineering Lead
