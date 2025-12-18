@@ -68,9 +68,8 @@ jobs:
           # Install firebase-tools
           npm install -g firebase-tools
 
-          # Use the access token from WIF auth
+          # Deploy using root firebase.json (no --config flag needed)
           firebase deploy \
-            --config infra/firebase/firebase.json \
             --project "$TARGET_ENV" \
             --non-interactive \
             --token "${{ steps.auth.outputs.access_token }}"
