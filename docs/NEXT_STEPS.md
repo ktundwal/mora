@@ -41,11 +41,11 @@ npm run clean && npm install
 - [ ] Confirm `infra/firebase/.firebaserc` project IDs are real and billing is attached where required
 - [ ] Confirm Firebase Hosting, Firestore, Storage are enabled in both projects
 
-## 🚨 Priority 1: Core App Foundation (This Week)
-- [ ] **Firebase Client Init:** Add Firebase client in `apps/web/src/lib/firebase.ts` (env-driven config)
-- [ ] **Auth Provider:** Create AuthContext with Google sign-in/sign-out
-- [ ] **Auth Guard:** Create protected route wrapper for authenticated pages
-- [ ] **Zustand Store:** Set up user store with `isPro` flag
+## 🚨 Priority 1: Core App Foundation ✅ COMPLETE
+- [x] **Firebase Client Init:** Add Firebase client in `apps/web/src/lib/firebase.ts` (env-driven config)
+- [x] **Auth Provider:** Create AuthContext with Google sign-in/sign-out
+- [x] **Auth Guard:** Create protected route wrapper for authenticated pages
+- [x] **Zustand Store:** Set up user store with `isPro` flag
 
 ## 🚨 Priority 2: First Feature Path (MVP Core)
 - [ ] **Conversation Paste:** Implement "New Conversation" flow (paste → parse → save to Firestore)
