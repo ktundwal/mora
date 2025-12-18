@@ -14,7 +14,7 @@ import {
   signOut as firebaseSignOut,
   type User,
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { getFirebaseAuth, getFirebaseDb } from './firebase';
 import { useUserStore } from './stores/user-store';
 import type { UserProfile } from '@mora/core';
@@ -52,9 +52,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(firebaseUser);
 
       if (firebaseUser) {
-        // Fetch or create user profile in Firestore
-        const profile = await getOrCreateUserProfile(firebaseUser);
-        setProfile(profile);
+        try {
+          // Fetch or create user profile in Firestore
+          const profile = await getOrCreateUserProfile(firebaseUser);
+          setProfile(profile);
+        } catch (error) {
+          console.error('Failed to get/create user profile:', error);
+        }
       } else {
         clearProfile();
       }
@@ -98,6 +102,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
   );
 }
 
+// Helper: Convert Firestore Timestamp to ISO string
+function toISOString(value: unknown): string {
+  if (value instanceof Timestamp) {
+    return value.toDate().toISOString();
+  }
+  if (typeof value === 'string') {
+    return value;
+  }
+  // Fallback for unexpected types
+  return new Date().toISOString();
+}
+
 // Helper: Get existing profile or create new one
 async function getOrCreateUserProfile(user: User): Promise<UserProfile> {
   const db = getFirebaseDb();
@@ -105,7 +121,14 @@ async function getOrCreateUserProfile(user: User): Promise<UserProfile> {
   const userSnap = await getDoc(userRef);
 
   if (userSnap.exists()) {
-    return userSnap.data() as UserProfile;
+    const data = userSnap.data();
+    // Convert Firestore Timestamps to ISO strings
+    return {
+      ...data,
+      createdAt: toISOString(data.createdAt),
+      updatedAt: toISOString(data.updatedAt),
+      unpacksResetAt: toISOString(data.unpacksResetAt),
+    } as UserProfile;
   }
 
   // Create new user profile
