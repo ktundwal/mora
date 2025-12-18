@@ -1,56 +1,52 @@
 # TODO
 
-## ⚠️ Immediate: Fix Node.js Version
-Your environment is running Node.js 24, which is incompatible with `lightningcss` (Tailwind CSS v4 dependency).
+## ✅ Completed
 
-```bash
-# Option 1: Volta (recommended - auto-switches per project)
-curl https://get.volta.sh | bash
-volta install node@20
+### Node.js Version (Fixed)
+- Using Volta with Node 20.18.0 (configured in package.json)
 
-# Option 2: nvm
-nvm install 20 && nvm use 20
-
-# Then reinstall dependencies
-npm run clean && npm install
-```
-
-## ✅ Completed (Code Review Enhancements)
-- [x] Expanded `@mora/core` types with full data model (Artifact, Unpack, ReplyDraft, PlaybookEntry, etc.)
+### Code Review Enhancements
+- [x] Expanded `@mora/core` types with full data model
 - [x] Added `schemaVersion` to all Firestore document types
-- [x] Cleaned root `package.json` - moved UI deps to web only, added proper scripts
+- [x] Cleaned root `package.json` - moved UI deps to web only
 - [x] Created `.env.example` files for both web and functions
-- [x] Migrated Cloud Functions to 2nd Gen syntax with proper structure
-- [x] Added `@mora/core` dependency to functions package
+- [x] Migrated Cloud Functions to 2nd Gen syntax
 - [x] Unified tsconfig inheritance via `tsconfig.base.json`
-- [x] Updated app metadata (title, description, OpenGraph, viewport)
-- [x] Replaced boilerplate home page with Mora landing page
+- [x] Updated app metadata and landing page
 - [x] Simplified Firestore rules (sub-collections inherit from parent)
-- [x] Updated E2E tests for new landing page
 
-## Deployment hardening (WIF)
-- [x] Switch GitHub Actions deploy auth from JSON keys to Workload Identity Federation (OIDC)
-- [x] Update bootstrap scripts to configure WIF + GitHub Environment variables
-- [ ] Run bootstrap for `dev`: `./infra/scripts/bootstrap-all.sh dev`
+### Deployment (WIF + Vercel)
+- [x] Switch GitHub Actions deploy auth to Workload Identity Federation (OIDC)
+- [x] Run bootstrap for `dev`: WIF configured for `mora-dev-1`
+- [x] GitHub Actions deploys Firestore rules/indexes on push
+- [x] Path filters: GH Actions only runs on `infra/firebase/**` or `apps/functions/**` changes
+- [x] Vercel deployment configured for Next.js app
+- [x] Vercel auto-deploys on push to `main`
+- [x] Firebase Auth authorized domain: `mora-beta.vercel.app`
+
+### Priority 1: Core App Foundation ✅
+- [x] Firebase Client Init with env-driven config
+- [x] Auth Provider with Google sign-in/sign-out
+- [x] Auth Guard for protected routes
+- [x] Zustand Store with user profile and `isPro` flag
+
+### Priority 2: First Feature Path (MVP Core) ✅
+- [x] **Conversation Paste:** 4-step wizard (paste → parse → map speakers → save)
+- [x] **Parser Logic:** WhatsApp text parser in `@mora/core` with speaker detection
+- [x] **Conversations List:** Display user's conversations at `/conversations`
+- [x] **Conversation Detail:** View messages at `/conversations/[id]`
+- [x] **Security hardening:** Message size limits, ownership validation, localStorage exclusions
+
+---
+
+## 🚧 In Progress
+
+### Deployment: Prod Environment
 - [ ] Run bootstrap for `prod`: `./infra/scripts/bootstrap-all.sh prod`
-- [ ] Verify GitHub Actions deploy succeeds for `dev` (push to `main` or `workflow_dispatch`)
-- [ ] After a successful WIF deploy, delete legacy secret `FIREBASE_SERVICE_ACCOUNT_JSON` from GitHub Environments (dev/prod)
-- [ ] (Optional) Tighten IAM roles beyond `roles/firebase.admin` once deploy surface is stable
+- [ ] Add `mora-prod` domain to Firebase Auth authorized domains
+- [ ] Delete legacy `FIREBASE_SERVICE_ACCOUNT_JSON` secret after WIF verified
 
-## Firebase projects
-- [ ] Confirm `infra/firebase/.firebaserc` project IDs are real and billing is attached where required
-- [ ] Confirm Firebase Hosting, Firestore, Storage are enabled in both projects
-
-## 🚨 Priority 1: Core App Foundation ✅ COMPLETE
-- [x] **Firebase Client Init:** Add Firebase client in `apps/web/src/lib/firebase.ts` (env-driven config)
-- [x] **Auth Provider:** Create AuthContext with Google sign-in/sign-out
-- [x] **Auth Guard:** Create protected route wrapper for authenticated pages
-- [x] **Zustand Store:** Set up user store with `isPro` flag
-
-## 🚨 Priority 2: First Feature Path (MVP Core)
-- [ ] **Conversation Paste:** Implement "New Conversation" flow (paste → parse → save to Firestore)
-- [ ] **Parser Logic:** Create WhatsApp text parser in `@mora/core` (extract speaker, timestamp, message)
-- [ ] **Conversations List:** Display user's conversations with search/sort
+---
 
 ## 💰 Priority 3: Revenue Path (Mora Pro)
 - [ ] **Stripe Setup:** Create Stripe account and set up "Mora Pro" product ($15/mo)
@@ -69,34 +65,38 @@ npm run clean && npm install
 - [ ] **Mobile PWA:** Add manifest.json for installable PWA
 - [ ] **Error Handling:** Add React Error Boundary and toast notifications
 
-## Milestone 4: Content Features (Post-Revenue)
-These are important but not revenue-blocking. Build after M3 proves people pay.
+---
 
-### M4.1: Playbook (Epic H)
-- [ ] **CRUD:** Create/list/edit/delete playbook entries
-- [ ] **Insert Snippet:** In reply editor, insert playbook entry into draft
-- [ ] **Pro Feature:** Unlimited entries + expert templates for Pro users
+## Post-Revenue Features
 
-### M4.2: Video Upload (Epic E2)
-- [ ] **Upload Flow:** Upload video file to Firebase Storage (private)
-- [ ] **Transcription Pipeline:** Cloud Function to transcribe video → artifact
-- [ ] **Storage Limits:** Implement per-user storage quota
+### Playbook
+- [ ] CRUD for playbook entries
+- [ ] Insert snippet into reply editor
+- [ ] Pro feature: unlimited entries + expert templates
 
-### M4.3: Export Bundle (Epic J)
-- [ ] **Markdown Export:** One-click Obsidian-compatible export
-- [ ] **Zip Bundle:** If media attached, export as .zip with relative links
-- [ ] **Therapist PDF:** "Prepare for Session" formatted export (Pro feature)
+### Video Upload
+- [ ] Upload video to Firebase Storage
+- [ ] Cloud Function for transcription
+- [ ] Per-user storage quota
 
-## ❌ Explicitly NOT v1 (Do After Revenue)
-- Daily check-ins / appreciation logs (retention theater)
+### Export Bundle
+- [ ] Markdown export (Obsidian-compatible)
+- [ ] Zip bundle with media
+- [ ] Therapist PDF export (Pro feature)
+
+---
+
+## ❌ Explicitly NOT v1
+- Daily check-ins / appreciation logs
 - Video upload / transcription pipeline
 - Multi-user shared workspace
 - Direct WhatsApp integration
 - OCR of on-screen text from reels
 
+---
+
 ## Technical Debt
 - [ ] Add Admin SDK migration runner under `tools/migrations`
 - [ ] Set up Husky + lint-staged for pre-commit hooks
 - [ ] Add proper unit tests beyond smoke test
-- [ ] Configure Next.js output for SSR vs static export decision
-- [ ] Evaluate Vercel for preview deploys (better DX than Firebase Hosting)
+- [ ] Configure preview deploys for PRs

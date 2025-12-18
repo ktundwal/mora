@@ -67,3 +67,54 @@ Using `gcloud`, `firebase-tools`, and `gh` CLI we can automate:
    - `npm run build`
    - `firebase deploy --config infra/firebase/firebase.json --project dev`
 
+
+---
+
+## Deployment Architecture
+
+### Two-Pipeline Model
+We use separate CI/CD pipelines for frontend and backend:
+
+| Layer | What | Deploys via | Trigger |
+|-------|------|-------------|---------|
+| **Frontend** | Next.js app (`apps/web`) | Vercel | Push to `main` (all changes) |
+| **Backend** | Firestore rules, indexes, Cloud Functions | GitHub Actions → Firebase | Push to `main` (only `infra/firebase/**` or `apps/functions/**`) |
+
+### Vercel Configuration
+- **Team:** `mora-ai`
+- **Project:** `mora`
+- **Production URL:** https://mora-beta.vercel.app
+- **Root Directory:** Repository root (monorepo setup)
+- **Build Command:** `npm run build:core && npm run build -w apps/web`
+- **Output Directory:** `apps/web/.next`
+
+Config file: `vercel.json` at repo root.
+
+### Environment Variables (Vercel)
+Set via `vercel env add <NAME> production`:
+- `NEXT_PUBLIC_FIREBASE_API_KEY`
+- `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
+- `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
+- `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
+- `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
+- `NEXT_PUBLIC_FIREBASE_APP_ID`
+- `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID`
+- `NEXT_PUBLIC_ENV`
+
+> ⚠️ **Important:** When adding env vars via CLI, use `echo -n "value" | vercel env add NAME production` to avoid trailing newlines.
+
+### Firebase Auth: Authorized Domains
+Add your Vercel domain to Firebase Auth:
+1. Go to Firebase Console → Authentication → Settings
+2. Add domain: `mora-beta.vercel.app` (or your custom domain)
+
+### GitHub Actions (Backend Deploy)
+- Workflow: `.github/workflows/deploy.yml`
+- Auth: Workload Identity Federation (WIF) - no JSON keys
+- Path filters: Only runs when `infra/firebase/**` or `apps/functions/**` change
+- Deploys: Firestore rules and indexes
+
+### Key Gotchas
+1. **Firestore Timestamps:** When reading from Firestore, convert `Timestamp` objects to ISO strings before passing to React components.
+2. **Subcollection rules:** Write parent document first (not in batch) so subcollection rules can verify parent ownership.
+3. **lightningcss on CI:** If `npm ci` fails on Linux, delete `package-lock.json` and regenerate on Linux or run `npm install` with `--platform=linux`.
