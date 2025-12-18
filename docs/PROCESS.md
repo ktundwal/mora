@@ -96,3 +96,121 @@ If using AI coding assistants (Copilot, Claude, Cursor) and getting stuck:
 5. **Escape hatch:** If build is broken and you can't recover in 15 min:
    - `git reset --hard HEAD~1` (nuclear option)
    - Re-apply changes incrementally with verification between each step
+
+---
+
+## GitHub Copilot Agents & Prompts
+
+This repo includes custom agents and prompts in `.github/` that streamline the development workflow.
+
+### Quick Reference Card
+
+| When you want to... | Use | Location |
+|---------------------|-----|----------|
+| **Plan without coding** | `@plan-mode` | `.github/agents/plan-mode.agent.md` |
+| **Write formal spec** | `/7_SPEC` | `.github/prompts/7_SPEC.prompt.md` |
+| **Design architecture** | `/2_ARCHITECT` | `.github/prompts/2_ARCHITECT.prompt.md` |
+| **Implement features** | `@mora-dev` | `.github/agents/mora-dev.agent.md` |
+| **Review code** | `@reviewer` | `.github/agents/reviewer.agent.md` |
+| **Run E2E tests** | `@e2e-tester` or `/6_TEST_E2E` | `.github/agents/e2e-tester.agent.md` |
+| **Look up library docs** | `@docs-expert` | `.github/agents/docs-expert.agent.md` |
+| **Deploy** | `/5_DEPLOY` | `.github/prompts/5_DEPLOY.prompt.md` |
+| **Check progress** | `/0_STATUS` | `.github/prompts/0_STATUS.prompt.md` |
+
+### Feature Development Workflow
+
+The recommended workflow for implementing a new feature:
+
+```
+1. @plan-mode    → Analyze and plan (no code written)
+2. /7_SPEC       → Generate formal specification  
+3. /2_ARCHITECT  → Design data model and components
+4. @mora-dev     → Implement with Vibe Protocol (test-first)
+5. @reviewer     → Review before committing
+6. /0_STATUS     → Update progress tracking
+```
+
+### Step-by-Step Example: Implementing a Feature
+
+**Step 1: Start with `@plan-mode`**
+
+In VS Code Chat, type:
+```
+@plan-mode I need to implement [feature name]. Analyze the codebase and create a plan.
+```
+
+What Plan Mode does:
+- Reads `docs/WHAT_AND_WHY.md` and `docs/NEXT_STEPS.md`
+- Searches codebase for existing patterns
+- Validates against business goals (revenue, target user)
+- Outputs a structured plan WITHOUT writing code
+- Has a "handoff" button to switch to implementation
+
+**Step 2: Generate Specification with `/7_SPEC`**
+```
+/7_SPEC Create a specification for [feature name]
+```
+
+Output: Formal requirements, data model, API design, acceptance criteria.
+Saved to: `docs/specs/[feature-name].spec.md`
+
+**Step 3: Design Architecture with `/2_ARCHITECT`**
+```
+/2_ARCHITECT Design [feature name] based on the spec
+```
+
+Output: TypeScript interfaces, Firestore schema, component hierarchy.
+
+**Step 4: Implement with `@mora-dev`**
+```
+@mora-dev Implement [component] following the spec. Start with test-first approach.
+```
+
+What Mora Dev does:
+- Follows Plan → Test → Code → Verify loop
+- Writes failing test first
+- Implements minimum code to pass
+- Runs `npm run verify`
+- Challenges scope creep and bad patterns
+
+**Step 5: Review with `@reviewer`**
+```
+@reviewer Review the [feature name] implementation
+```
+
+What Reviewer does:
+- Runs `git diff` to see changes
+- Security checklist (no secrets, proper auth)
+- Architecture checklist (types in core, proper imports)
+- Gives score and "Ready to Merge" verdict
+
+**Step 6: Update Status with `/0_STATUS`**
+```
+/0_STATUS
+```
+
+Output: Current progress, next priority, any blockers.
+
+### All Available Prompts
+
+| # | Prompt | Purpose |
+|---|--------|---------|
+| 0 | `/0_STATUS` | Check project status and next priorities |
+| 1 | `/1_PLAN` | Turn feature idea into execution plan |
+| 2 | `/2_ARCHITECT` | Design data models, APIs, components |
+| 3 | `/3_CODE` | Implement with Vibe Protocol |
+| 4 | `/4_REVIEW` | Code review checklist |
+| 5 | `/5_DEPLOY` | Deploy to dev or production |
+| 6 | `/6_TEST_E2E` | Run and debug Playwright tests |
+| 7 | `/7_SPEC` | Generate formal specification |
+| 8 | `/8_README` | Generate/update README |
+
+### All Available Agents
+
+| Agent | Purpose | Key Capability |
+|-------|---------|----------------|
+| `@mora-dev` | Main development assistant | Product gatekeeper, challenges bad ideas |
+| `@plan-mode` | Strategic planning | No-code analysis, handoff to implementation |
+| `@reviewer` | Code review & security | Checklists, verification |
+| `@e2e-tester` | Browser testing | Playwright MCP integration |
+| `@docs-expert` | Library documentation | Context7 MCP for live docs |
