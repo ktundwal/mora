@@ -6,6 +6,7 @@
     "packages/*"
   ],
   "scripts": {
+    "preinstall": "node -e \"const v=parseInt(process.version.slice(1));if(v<18||v>=23){console.error('\\x1b[31mError: Node 18-22 required (got '+process.version+'). Use: volta pin node@20 or nvm use 20\\x1b[0m');process.exit(1)}\"",
     "dev": "npm --workspace apps/web run dev",
     "build": "npm run build:core && npm --workspace apps/web run build",
     "build:core": "npm --workspace @mora/core run build",
@@ -28,5 +29,8 @@
   },
   "volta": {
     "node": "20.18.0"
+  },
+  "dependencies": {
+    "lightningcss-darwin-arm64": "^1.30.2"
   }
 }

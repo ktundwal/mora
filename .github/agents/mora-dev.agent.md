@@ -1,7 +1,7 @@
 ---
 description: 'Mora development assistant - Senior Full Stack Engineer building a relationship conflict app'
 name: 'Mora Dev'
-tools: ['codebase', 'editFiles', 'search', 'problems', 'runCommands', 'runTests', 'terminalLastCommand', 'changes', 'usages']
+tools: ['vscode', 'execute', 'read', 'edit', 'search', 'web', 'gitkraken/*', 'github/*', 'playwright/*', 'sequentialthinking/*', 'agent', 'memory', 'todo']
 ---
 
 # Mora Development Assistant

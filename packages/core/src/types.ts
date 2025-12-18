@@ -236,3 +236,65 @@ export const PRO_TIER_LIMITS = {
   playbookEntries: Infinity,
   draftTones: Infinity,
 } as const;
+
+// ============================================================================
+// WhatsApp Parser Types
+// ============================================================================
+
+/** Result of parsing a single line of WhatsApp text */
+export interface ParsedMessage {
+  /** Raw speaker name as extracted (before mapping to User/Partner) */
+  speaker: string;
+  /** Message content */
+  text: string;
+  /** ISO string if timestamp was detected, null otherwise */
+  timestamp: string | null;
+  /** Original line for debugging/review */
+  rawLine: string;
+  /** 1-indexed line number in source text */
+  lineNumber: number;
+}
+
+/** Reason a line could not be parsed */
+export type ParseErrorReason =
+  | 'no_speaker'
+  | 'malformed_timestamp'
+  | 'system_message'
+  | 'empty';
+
+/** Error encountered during parsing */
+export interface ParseError {
+  lineNumber: number;
+  rawLine: string;
+  reason: ParseErrorReason;
+}
+
+/** Complete result of parsing WhatsApp text */
+export interface ParseResult {
+  /** Successfully parsed messages */
+  messages: ParsedMessage[];
+  /** Unique speaker names found in parsed messages */
+  detectedSpeakers: string[];
+  /** Lines that could not be parsed */
+  errors: ParseError[];
+  /** Parsing statistics */
+  stats: {
+    totalLines: number;
+    parsedCount: number;
+    errorCount: number;
+    systemMessagesFiltered: number;
+  };
+}
+
+/** User's assignment of raw speaker names to canonical roles */
+export interface SpeakerMapping {
+  [rawName: string]: Speaker;
+}
+
+/** Input for creating a new conversation from parsed data */
+export interface CreateConversationInput {
+  title: string;
+  rawText: string;
+  parsedMessages: ParsedMessage[];
+  speakerMapping: SpeakerMapping;
+}
