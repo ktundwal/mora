@@ -1,0 +1,47 @@
+# dependencies
+node_modules/
+
+# build outputs
+.next/
+out/
+dist/
+lib/
+*.tsbuildinfo
+
+# env (keep examples)
+.env
+.env.*
+!.env.example
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.swp
+*.swo
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# firebase
+.firebase/
+
+# local bootstrap artifacts
+.tmp/
+
+# test artifacts
+test-results/
+playwright-report/
+coverage/
+
+# Vercel
+.vercel

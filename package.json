@@ -1,0 +1,32 @@
+{
+  "name": "mora",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm --workspace apps/web run dev",
+    "build": "npm run build:core && npm --workspace apps/web run build",
+    "build:core": "npm --workspace @mora/core run build",
+    "build:functions": "npm --workspace functions run build",
+    "lint": "npm --workspace apps/web run lint",
+    "typecheck": "npm run typecheck:core && npm --workspace apps/web run typecheck",
+    "typecheck:core": "npm --workspace @mora/core run typecheck",
+    "test:unit": "npm --workspace apps/web run test:unit",
+    "test:e2e": "npm --workspace apps/web run test:e2e",
+    "test": "npm run test:unit && npm run test:e2e",
+    "verify": "npm run lint && npm run typecheck && npm run build && npm run test",
+    "setup": "npm --workspace apps/web run test:e2e:install",
+    "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0 <23.0.0"
+  },
+  "volta": {
+    "node": "20.18.0"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "default": "mora-dev",
+    "dev": "mora-dev",
+    "prod": "mora-prod"
+  }
+}
