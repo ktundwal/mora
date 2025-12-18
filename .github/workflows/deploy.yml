@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'infra/firebase/**'
+      - 'apps/functions/**'
   workflow_dispatch:
     inputs:
       environment:
