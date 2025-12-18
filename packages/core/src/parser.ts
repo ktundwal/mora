@@ -344,6 +344,25 @@ export function parseWhatsAppText(rawText: string): ParseResult {
 // Mapping Function
 // ============================================================================
 
+/** Maximum characters per message to prevent abuse */
+export const MAX_MESSAGE_LENGTH = 10000;
+
+/** Maximum characters for raw line storage */
+export const MAX_RAW_LINE_LENGTH = 12000;
+
+/** Maximum number of messages per conversation */
+export const MAX_MESSAGES_PER_CONVERSATION = 5000;
+
+/**
+ * Sanitize text to prevent storage abuse.
+ * Truncates to max length and removes null bytes.
+ */
+function sanitizeText(text: string, maxLength: number): string {
+  // Remove null bytes which can cause issues
+  const cleaned = text.replace(/\0/g, '');
+  return cleaned.slice(0, maxLength);
+}
+
 /**
  * Apply speaker mapping to parsed messages, converting to Message format.
  *
@@ -357,12 +376,15 @@ export function applyMapping(
   mapping: SpeakerMapping,
   conversationId: string
 ): Omit<Message, 'id'>[] {
-  return parsedMessages.map((pm, index) => ({
+  // Limit number of messages to prevent abuse
+  const limitedMessages = parsedMessages.slice(0, MAX_MESSAGES_PER_CONVERSATION);
+
+  return limitedMessages.map((pm, index) => ({
     conversationId,
     speaker: (mapping[pm.speaker] || 'Unknown') as Speaker,
-    text: pm.text,
+    text: sanitizeText(pm.text, MAX_MESSAGE_LENGTH),
     timestamp: pm.timestamp,
-    originalRaw: pm.rawLine,
+    originalRaw: sanitizeText(pm.rawLine, MAX_RAW_LINE_LENGTH),
     order: index,
     schemaVersion: CURRENT_SCHEMA_VERSION,
   }));

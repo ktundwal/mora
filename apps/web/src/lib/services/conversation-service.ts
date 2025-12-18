@@ -10,6 +10,7 @@ import {
   doc,
   getDocs,
   getDoc,
+  setDoc,
   updateDoc,
   query,
   where,
@@ -56,18 +57,18 @@ export async function createConversation({
   speakerMapping,
 }: CreateConversationParams): Promise<string> {
   const db = getFirebaseDb();
-  const batch = writeBatch(db);
 
-  // Create conversation document
+  // Create conversation document FIRST (not in batch)
+  // This is required because Firestore rules for sub-collections use get() 
+  // to check parent ownership, which doesn't work within a batch
   const convRef = doc(collection(db, 'conversations'));
-  const now = new Date().toISOString();
 
   const conversationData: Omit<Conversation, 'id'> = {
     uid,
     title,
     summary: null,
-    createdAt: now,
-    updatedAt: now,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     messageCount: parsedMessages.length,
     status: 'active',
     hasUnpack: false,
@@ -75,30 +76,32 @@ export async function createConversation({
     schemaVersion: CURRENT_SCHEMA_VERSION,
   };
 
-  batch.set(convRef, {
+  // Write conversation first so security rules can verify ownership
+  await setDoc(convRef, {
     ...conversationData,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
 
-  // Create message documents using applyMapping from @mora/core
+  // Now batch write messages - rules can now verify parent ownership
   const messages = applyMapping(parsedMessages, speakerMapping, convRef.id);
   const messagesRef = collection(db, 'conversations', convRef.id, 'messages');
 
   // Firestore batches are limited to 500 operations
-  // We have 1 conversation + N messages, so limit messages to 499
-  const messagesToWrite = messages.slice(0, 499);
-
-  for (const message of messagesToWrite) {
-    const msgRef = doc(messagesRef);
-    batch.set(msgRef, message);
+  const messagesToWrite = messages.slice(0, 500);
+  
+  if (messagesToWrite.length > 0) {
+    const batch = writeBatch(db);
+    for (const message of messagesToWrite) {
+      const msgRef = doc(messagesRef);
+      batch.set(msgRef, message);
+    }
+    await batch.commit();
   }
 
-  await batch.commit();
-
-  // If we have more than 499 messages, write them in subsequent batches
-  if (messages.length > 499) {
-    const remainingMessages = messages.slice(499);
+  // If we have more than 500 messages, write them in subsequent batches
+  if (messages.length > 500) {
+    const remainingMessages = messages.slice(500);
     const chunks = chunkArray(remainingMessages, 500);
 
     for (const chunk of chunks) {
@@ -149,10 +152,14 @@ export async function getConversations(
 
 /**
  * Get a single conversation by ID.
- * Returns null if not found.
+ * Returns null if not found or if user doesn't own it.
+ *
+ * @param conversationId - The conversation ID
+ * @param currentUid - Optional: current user's UID for ownership validation
  */
 export async function getConversation(
-  conversationId: string
+  conversationId: string,
+  currentUid?: string
 ): Promise<Conversation | null> {
   const db = getFirebaseDb();
   const docSnap = await getDoc(doc(db, 'conversations', conversationId));
@@ -162,6 +169,14 @@ export async function getConversation(
   }
 
   const data = docSnap.data();
+
+  // Client-side ownership validation (Firestore rules are the source of truth,
+  // but this provides faster feedback and prevents unnecessary data exposure)
+  if (currentUid && data.uid !== currentUid) {
+    console.warn('Attempted to access conversation not owned by current user');
+    return null;
+  }
+
   return {
     id: docSnap.id,
     ...data,

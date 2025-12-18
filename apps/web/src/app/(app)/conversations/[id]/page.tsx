@@ -11,12 +11,14 @@ import {
   getMessages,
   deleteConversation,
 } from '@/lib/services/conversation-service';
+import { useUserStore } from '@/lib/stores/user-store';
 import type { Conversation, Message } from '@mora/core';
 
 export default function ConversationDetailPage() {
   const params = useParams();
   const router = useRouter();
   const conversationId = params.id as string;
+  const profile = useUserStore((state) => state.profile);
 
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -25,10 +27,16 @@ export default function ConversationDetailPage() {
 
   useEffect(() => {
     async function load() {
+      if (!profile?.uid) {
+        setError('Not authenticated');
+        setIsLoading(false);
+        return;
+      }
+
       try {
         setIsLoading(true);
         const [conv, msgs] = await Promise.all([
-          getConversation(conversationId),
+          getConversation(conversationId, profile.uid),
           getMessages(conversationId),
         ]);
         if (!conv) {
@@ -45,7 +53,7 @@ export default function ConversationDetailPage() {
       }
     }
     load();
-  }, [conversationId]);
+  }, [conversationId, profile?.uid]);
 
   const handleDelete = async () => {
     if (!confirm('Delete this conversation? This cannot be undone.')) return;

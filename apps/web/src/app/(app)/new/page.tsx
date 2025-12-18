@@ -71,6 +71,10 @@ export default function NewConversationPage() {
 
   const handleBack = () => {
     if (step === 1) {
+      // Confirm before discarding content
+      if (draft.rawText.trim() && !confirm('Discard this conversation?')) {
+        return;
+      }
       resetDraft();
       router.push('/conversations');
     } else {
@@ -425,6 +429,7 @@ function ConfirmStep({
           value={title}
           onChange={(e) => onTitleChange(e.target.value)}
           placeholder="e.g., Discussion about weekend plans"
+          maxLength={100}
         />
       </div>
 

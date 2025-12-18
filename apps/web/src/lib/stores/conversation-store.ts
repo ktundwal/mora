@@ -243,8 +243,19 @@ export const useConversationStore = create<ConversationState>()(
       }),
       {
         name: 'mora-conversation-store',
-        // Only persist the draft for autosave
-        partialize: (state) => ({ draft: state.draft }),
+        // Only persist non-sensitive draft data for autosave
+        // Exclude rawText and parseResult to avoid storing conversation content in localStorage
+        partialize: (state) => ({
+          draft: {
+            step: state.draft.step,
+            speakerMapping: state.draft.speakerMapping,
+            title: state.draft.title,
+            hasPermission: state.draft.hasPermission,
+            // Explicitly exclude sensitive data
+            rawText: '',
+            parseResult: null,
+          },
+        }),
       }
     ),
     { name: 'ConversationStore' }

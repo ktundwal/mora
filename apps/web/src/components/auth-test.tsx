@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import { useUserStore } from '@/lib/stores/user-store';
 
@@ -99,6 +100,13 @@ export function AuthTest() {
       >
         Sign Out
       </button>
+
+      <Link
+        href="/conversations"
+        className="mt-3 block w-full rounded-lg bg-zinc-900 px-4 py-2 text-center text-white transition hover:bg-zinc-800"
+      >
+        Go to Conversations →
+      </Link>
     </div>
   );
 }
