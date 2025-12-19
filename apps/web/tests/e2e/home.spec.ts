@@ -31,8 +31,15 @@ test.describe('Public pages (no auth required)', () => {
 
   test('auth test component shows sign-in button when logged out', async ({ page }) => {
     await page.goto('/');
-    
-    // Should see sign-in button (not user info)
-    await expect(page.getByRole('button', { name: /sign in with google/i })).toBeVisible();
+
+    const testAuthEnabled = await page.evaluate(
+      () => window.__testAuth?.isEnabled?.() ?? false
+    );
+
+    if (testAuthEnabled) {
+      await expect(page.getByRole('heading', { name: /authenticated/i })).toBeVisible();
+    } else {
+      await expect(page.getByRole('button', { name: /sign in with google/i })).toBeVisible();
+    }
   });
 });

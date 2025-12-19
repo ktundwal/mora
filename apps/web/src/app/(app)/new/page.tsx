@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, ArrowRight, Check, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -22,10 +22,16 @@ import {
   selectDraft,
   selectDraftStep,
 } from '@/lib/stores/conversation-store';
+import {
+  usePersonStore,
+  selectPeople,
+  selectPeopleLoading,
+} from '@/lib/stores/person-store';
 import type { Speaker } from '@mora/core';
 
 export default function NewConversationPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const draft = useConversationStore(selectDraft);
   const step = useConversationStore(selectDraftStep);
   const {
@@ -36,12 +42,47 @@ export default function NewConversationPage() {
     prevStep,
     updateSpeakerMapping,
     setDraftTitle,
+    setDraftPersonId,
     saveConversation,
     resetDraft,
   } = useConversationStore();
 
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const people = usePersonStore(selectPeople);
+  const peopleLoading = usePersonStore(selectPeopleLoading);
+  const { fetchPeople } = usePersonStore();
+
+  const returnTo = useMemo(
+    () => searchParams.get('returnTo') ?? '/conversations',
+    [searchParams]
+  );
+
+  const progressWidthClass = useMemo(() => {
+    switch (step) {
+      case 1:
+        return 'w-1/4';
+      case 2:
+        return 'w-1/2';
+      case 3:
+        return 'w-3/4';
+      case 4:
+        return 'w-full';
+      default:
+        return 'w-1/4';
+    }
+  }, [step]);
+
+  useEffect(() => {
+    const personIdParam = searchParams.get('personId');
+    const personId = personIdParam && personIdParam.trim() ? personIdParam.trim() : null;
+    setDraftPersonId(personId);
+  }, [searchParams, setDraftPersonId]);
+
+  useEffect(() => {
+    fetchPeople();
+  }, [fetchPeople]);
 
   const handleParse = () => {
     if (!draft.rawText.trim()) {
@@ -62,7 +103,12 @@ export default function NewConversationPage() {
     setError(null);
     try {
       const conversationId = await saveConversation();
-      router.push(`/conversations/${conversationId}`);
+      // REQ-LINK-002: If no personId was set, redirect to link page
+      if (!draft.personId) {
+        router.push(`/conversations/${conversationId}/link`);
+      } else {
+        router.push(`/conversations/${conversationId}`);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save conversation');
       setIsSaving(false);
@@ -76,7 +122,7 @@ export default function NewConversationPage() {
         return;
       }
       resetDraft();
-      router.push('/conversations');
+      router.push(returnTo);
     } else {
       prevStep();
     }
@@ -100,8 +146,10 @@ export default function NewConversationPage() {
       {/* Progress bar */}
       <div className="h-1 bg-zinc-100 dark:bg-zinc-800">
         <div
-          className="h-full bg-zinc-900 transition-all dark:bg-white"
-          style={{ width: `${(step / 4) * 100}%` }}
+          className={cn(
+            'h-full bg-zinc-900 transition-all dark:bg-white',
+            progressWidthClass
+          )}
         />
       </div>
 
@@ -148,6 +196,10 @@ export default function NewConversationPage() {
               title={draft.title}
               messageCount={draft.parseResult?.messages.length ?? 0}
               onTitleChange={setDraftTitle}
+              people={people}
+              personId={draft.personId}
+              onPersonIdChange={setDraftPersonId}
+              peopleLoading={peopleLoading}
               onSave={handleSave}
               onBack={prevStep}
               isSaving={isSaving}
@@ -400,6 +452,10 @@ interface ConfirmStepProps {
   title: string;
   messageCount: number;
   onTitleChange: (title: string) => void;
+  people: Array<{ id: string; displayName: string }>;
+  personId: string | null;
+  onPersonIdChange: (personId: string | null) => void;
+  peopleLoading: boolean;
   onSave: () => void;
   onBack: () => void;
   isSaving: boolean;
@@ -409,6 +465,10 @@ function ConfirmStep({
   title,
   messageCount,
   onTitleChange,
+  people,
+  personId,
+  onPersonIdChange,
+  peopleLoading,
   onSave,
   onBack,
   isSaving,
@@ -431,6 +491,36 @@ function ConfirmStep({
           placeholder="e.g., Discussion about weekend plans"
           maxLength={100}
         />
+      </div>
+
+      <div className="space-y-2">
+        <Label>Link to a person (optional)</Label>
+        {peopleLoading ? (
+          <div className="rounded-lg border border-zinc-200 p-3 text-sm text-zinc-500 dark:border-zinc-800">
+            Loading people…
+          </div>
+        ) : people.length === 0 ? (
+          <div className="rounded-lg border border-zinc-200 p-3 text-sm text-zinc-500 dark:border-zinc-800">
+            No people yet. You can link this chat later.
+          </div>
+        ) : (
+          <Select
+            value={personId ?? ''}
+            onValueChange={(value) => onPersonIdChange(value ? value : null)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Unassigned" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Unassigned</SelectItem>
+              {people.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.displayName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       <Card>

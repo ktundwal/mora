@@ -3,7 +3,7 @@
 import { type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { MessageCircle, PlusCircle, BookOpen, Settings } from 'lucide-react';
+import { MessageCircle, PlusCircle, BookOpen, Settings, Users } from 'lucide-react';
 import { AuthGuard } from '@/lib/auth-guard';
 import { cn } from '@/lib/utils';
 
@@ -19,6 +19,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { href: '/conversations', label: 'Chats', icon: MessageCircle },
+  { href: '/people', label: 'People', icon: Users },
   { href: '/new', label: 'New', icon: PlusCircle },
   { href: '/playbook', label: 'Playbook', icon: BookOpen },
   { href: '/settings', label: 'Settings', icon: Settings },

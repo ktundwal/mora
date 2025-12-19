@@ -3,6 +3,23 @@
     "rules": "infra/firebase/firestore/firestore.rules",
     "indexes": "infra/firebase/firestore/firestore.indexes.json"
   },
+  "emulators": {
+    "auth": {
+      "host": "127.0.0.1",
+      "port": 9099
+    },
+    "firestore": {
+      "host": "127.0.0.1",
+      "port": 8085
+    },
+    "hub": {
+      "host": "127.0.0.1",
+      "port": 4401
+    },
+    "ui": {
+      "enabled": false
+    }
+  },
   "storage": {
     "rules": "infra/firebase/storage/storage.rules"
   },

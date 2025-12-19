@@ -77,6 +77,21 @@ service cloud.firestore {
     }
 
     // =========================================================================
+    // People (standalone, user-owned) + Entries (sub-collection)
+    // =========================================================================
+
+    match /people/{personId} {
+      allow create: if isCreatingOwned();
+      allow read, update, delete: if isCurrentUser();
+
+      // Entries inherit from person ownership
+      match /entries/{entryId} {
+        allow read, write: if isSignedIn() &&
+          get(/databases/$(database)/documents/people/$(personId)).data.uid == request.auth.uid;
+      }
+    }
+
+    // =========================================================================
     // Deny everything else by default
     // =========================================================================
     

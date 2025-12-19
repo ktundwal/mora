@@ -8,7 +8,7 @@ export function isTestEnvironment(): boolean {
   return (
     process.env.NODE_ENV === 'test' ||
     process.env.NEXT_PUBLIC_ENV === 'test' ||
-    process.env.PLAYWRIGHT_TEST === 'true'
+    process.env.NEXT_PUBLIC_PLAYWRIGHT_TEST === 'true'
   );
 }
 
@@ -32,10 +32,20 @@ export function exposeTestAuthToWindow(): void {
 
 interface TestAuthMethods {
   isEnabled: () => boolean;
+  status: () => {
+    testEnvironment: boolean;
+    enabled: boolean;
+    useEmulators: boolean;
+  };
 }
 
 const testAuthMethods: TestAuthMethods = {
   isEnabled: () => isTestAuthEnabled(),
+  status: () => ({
+    testEnvironment: isTestEnvironment(),
+    enabled: isTestAuthEnabled(),
+    useEmulators: process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === 'true',
+  }),
 };
 
 // Type declaration for window

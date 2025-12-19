@@ -1,7 +1,7 @@
 ---
 description: 'Code review mode - security, architecture, and quality checks before merge'
 name: 'Reviewer'
-tools: ['codebase', 'changes', 'problems', 'search', 'usages', 'runCommands']
+tools: ['vscode', 'execute', 'read', 'filesystem/*', 'edit', 'search', 'web', 'github/*', 'agent', 'memory', 'todo']
 ---
 
 # Reviewer Mode - Code Quality Guardian

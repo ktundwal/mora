@@ -31,6 +31,7 @@ export interface DraftState {
   parseResult: ParseResult | null;
   speakerMapping: SpeakerMapping;
   title: string;
+  personId: string | null;
   hasPermission: boolean;
   step: DraftStep;
 }
@@ -54,6 +55,7 @@ interface ConversationState {
   setSpeakerMapping: (mapping: SpeakerMapping) => void;
   updateSpeakerMapping: (speaker: string, role: 'User' | 'Partner' | 'Unknown') => void;
   setDraftTitle: (title: string) => void;
+  setDraftPersonId: (personId: string | null) => void;
   setHasPermission: (value: boolean) => void;
   setStep: (step: DraftStep) => void;
   nextStep: () => void;
@@ -71,6 +73,7 @@ const initialDraft: DraftState = {
   parseResult: null,
   speakerMapping: {},
   title: '',
+  personId: null,
   hasPermission: false,
   step: 1,
 };
@@ -184,6 +187,12 @@ export const useConversationStore = create<ConversationState>()(
           }));
         },
 
+        setDraftPersonId: (personId: string | null) => {
+          set((state) => ({
+            draft: { ...state.draft, personId },
+          }));
+        },
+
         setHasPermission: (hasPermission: boolean) => {
           set((state) => ({
             draft: { ...state.draft, hasPermission },
@@ -226,6 +235,7 @@ export const useConversationStore = create<ConversationState>()(
             title: draft.title || generateDefaultTitle(),
             parsedMessages: draft.parseResult.messages,
             speakerMapping: draft.speakerMapping,
+            personId: draft.personId,
           });
 
           // Reset draft after successful save
@@ -251,6 +261,7 @@ export const useConversationStore = create<ConversationState>()(
             speakerMapping: state.draft.speakerMapping,
             title: state.draft.title,
             hasPermission: state.draft.hasPermission,
+            personId: null,
             // Explicitly exclude sensitive data
             rawText: '',
             parseResult: null,

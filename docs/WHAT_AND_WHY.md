@@ -4,32 +4,16 @@ Date: Dec 18, 2025
 Owner: Kapil
 
 ## 1) Product Vision & Value Proposition
-**"A pocket companion for breaking the cycle of transactional conflict."**
-
-High-functioning partners often treat relationship conflict like a project to be managed—analyzing root causes, applying "therapy frameworks," and debating logic. This "competence" is actually a defense mechanism that creates distance.
-
-**Mora** (working title) intervenes in this dynamic by acting as a **neutral third party** that:
-1.  **Slows down the nervous system:** Forcing a "Witness Pause" between the trigger (text/reel) and the reaction.
-2.  **Translates "Attack" into "Pain":** Using AI to strip away the accusation and reveal the underlying hurt or unmet need.
-3.  **Coaches "Connection" over "Performance":** Flagging defensive logic and "therapy speak" in real-time, guiding the user to respond with vulnerability ("I hurt you") rather than management ("I hear you").
-
-**The Goal:** To help partners move from **"Fear of Losing"** (reassurance seeking, panic) to **"Fear of Hurting"** (care, repair), turning potential break-up moments into opportunities for deep repair.
+Canonical narrative positioning (vision, framing, and “why now”) lives in [docs/BUSINESS.md](docs/BUSINESS.md) to avoid duplication.
 
 ## 2) Target user
-- Primary: User (single-user product v1) - specifically the "Anxious-Preoccupied" partner who is willing to pay for peace of mind.
-- Secondary: Therapist/Coach (B2B2C channel) - they recommend the app to clients to save time in sessions.
+Canonical target user definition lives in [docs/BUSINESS.md](docs/BUSINESS.md).
 
 ## 3) Key outcomes (success looks like)
-- **Revenue:** Conversion rate from Free to Pro > 5%.
-- You can go from “copied WhatsApp text” → “clean Unpack + reply draft I actually use” in under 2 minutes.
-- You can find any past conflict (by date/topic/reel) in under 10 seconds.
-- You can draft a reply in your tone without it sounding robotic or therapy-speak.
+Canonical success metrics live in [docs/BUSINESS.md](docs/BUSINESS.md).
 
 ## 3.5) Monetization (Business Model)
-- **Freemium Model:**
-  - **Free:** 3 Unpacks/month, Basic Drafting, 7-day history.
-  - **Pro ($15/mo):** Unlimited Unpacks, Advanced Tone Coaching, Full History, "Prepare for Session" PDF export.
-- **Payment Infrastructure:** Stripe integration required for v1 launch (or at least a waitlist/payment link).
+Canonical monetization model lives in [docs/BUSINESS.md](docs/BUSINESS.md).
 
 ## 4) Hard constraints
 - Cloud web first, **mobile-friendly** (phone browser primary)

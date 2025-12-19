@@ -46,6 +46,19 @@
 - [ ] Add `mora-prod` domain to Firebase Auth authorized domains
 - [ ] Delete legacy `FIREBASE_SERVICE_ACCOUNT_JSON` secret after WIF verified
 
+### SPEC-002: People Layer (v1)
+- [x] Shared types in `@mora/core` (Person/Entry + Conversation.personId)
+- [x] Firestore rules for `/people` + `/people/{id}/entries`
+- [x] Web services + Zustand stores for People + Entries
+- [x] People UI: `/people` list + `/people/[id]` detail with entry capture
+- [x] Navigation: add People tab
+- [x] New chat import: accept `personId` and link conversation
+- [x] Onboarding redirect: `/conversations` → `/people` when no people exist (REQ-ONB-001)
+- [x] Link enforcement: redirect to `/conversations/[id]/link` after saving without personId (REQ-LINK-002)
+- [x] Delete functionality: Person and Entry deletion with UI
+- [x] Unpack/Follow-up placeholders: disabled buttons on entry cards
+- [x] E2E tests: 7 tests covering People, Entries, onboarding redirect, link page
+
 ---
 
 ## 💰 Priority 3: Revenue Path (Mora Pro)
@@ -83,6 +96,10 @@
 - [ ] Markdown export (Obsidian-compatible)
 - [ ] Zip bundle with media
 - [ ] Therapist PDF export (Pro feature)
+
+### Voice (V2)
+- [ ] Voice notes: dictate an Entry tied to a Person ("walking mode")
+- [ ] Voice call uploads: explicit consent checkbox + Storage + transcription Function + per-user quota
 
 ---
 

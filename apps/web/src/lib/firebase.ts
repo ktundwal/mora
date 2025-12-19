@@ -20,12 +20,21 @@ const firebaseConfig = {
 // Check if we should use emulators
 const useEmulators = process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === 'true';
 
+const authEmulatorHost = process.env.NEXT_PUBLIC_AUTH_EMULATOR_HOST || '127.0.0.1';
+const authEmulatorPort = Number(process.env.NEXT_PUBLIC_AUTH_EMULATOR_PORT || '9099');
+const firestoreEmulatorHost = process.env.NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST || '127.0.0.1';
+const firestoreEmulatorPort = Number(process.env.NEXT_PUBLIC_FIRESTORE_EMULATOR_PORT || '8080');
+const storageEmulatorHost = process.env.NEXT_PUBLIC_STORAGE_EMULATOR_HOST || '127.0.0.1';
+const storageEmulatorPort = Number(process.env.NEXT_PUBLIC_STORAGE_EMULATOR_PORT || '9199');
+
 // Initialize Firebase lazily (only when actually needed on client)
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
 let db: Firestore | null = null;
 let storage: FirebaseStorage | null = null;
-let emulatorsConnected = false;
+let authEmulatorConnected = false;
+let firestoreEmulatorConnected = false;
+let storageEmulatorConnected = false;
 
 function getFirebaseApp(): FirebaseApp {
   if (typeof window === 'undefined') {
@@ -69,18 +78,23 @@ export function getFirebaseStorage(): FirebaseStorage {
  * Only connects once, even if called multiple times
  */
 function connectToEmulators(): void {
-  if (!useEmulators || emulatorsConnected) return;
-  
-  emulatorsConnected = true;
-  console.log('[Firebase] Connecting to emulators...');
+  if (!useEmulators) return;
 
-  if (auth) {
-    connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
+  if (auth && !authEmulatorConnected) {
+    authEmulatorConnected = true;
+    console.log('[Firebase] Connecting Auth emulator...');
+    connectAuthEmulator(auth, `http://${authEmulatorHost}:${authEmulatorPort}`, { disableWarnings: true });
   }
-  if (db) {
-    connectFirestoreEmulator(db, '127.0.0.1', 8080);
+
+  if (db && !firestoreEmulatorConnected) {
+    firestoreEmulatorConnected = true;
+    console.log('[Firebase] Connecting Firestore emulator...');
+    connectFirestoreEmulator(db, firestoreEmulatorHost, firestoreEmulatorPort);
   }
-  if (storage) {
-    connectStorageEmulator(storage, '127.0.0.1', 9199);
+
+  if (storage && !storageEmulatorConnected) {
+    storageEmulatorConnected = true;
+    console.log('[Firebase] Connecting Storage emulator...');
+    connectStorageEmulator(storage, storageEmulatorHost, storageEmulatorPort);
   }
 }

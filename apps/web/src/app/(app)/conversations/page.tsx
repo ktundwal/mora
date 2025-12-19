@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { MessageSquare, Trash2, Clock, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,19 +11,38 @@ import {
   selectConversations,
   selectIsLoading,
 } from '@/lib/stores/conversation-store';
+import {
+  usePersonStore,
+  selectPeople,
+  selectPeopleLoading,
+} from '@/lib/stores/person-store';
 import { cn } from '@/lib/utils';
 import type { Conversation } from '@mora/core';
 
 export default function ConversationsPage() {
+  const router = useRouter();
   const conversations = useConversationStore(selectConversations);
   const isLoading = useConversationStore(selectIsLoading);
   const { fetchConversations, deleteConversation } = useConversationStore();
 
+  const people = usePersonStore(selectPeople);
+  const peopleLoading = usePersonStore(selectPeopleLoading);
+  const { fetchPeople } = usePersonStore();
+
   useEffect(() => {
     fetchConversations();
-  }, [fetchConversations]);
+    fetchPeople();
+  }, [fetchConversations, fetchPeople]);
 
-  if (isLoading && conversations.length === 0) {
+  // REQ-ONB-001/002: Redirect to People if user has no people yet
+  useEffect(() => {
+    if (!peopleLoading && people.length === 0 && !isLoading) {
+      router.replace('/people');
+    }
+  }, [people.length, peopleLoading, isLoading, router]);
+
+  // Show loading while checking people or conversations
+  if ((isLoading || peopleLoading) && conversations.length === 0) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">

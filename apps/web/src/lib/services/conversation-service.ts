@@ -38,6 +38,7 @@ export interface CreateConversationParams {
   title: string;
   parsedMessages: ParsedMessage[];
   speakerMapping: SpeakerMapping;
+  personId?: string | null;
 }
 
 // ============================================================================
@@ -55,6 +56,7 @@ export async function createConversation({
   title,
   parsedMessages,
   speakerMapping,
+  personId,
 }: CreateConversationParams): Promise<string> {
   const db = getFirebaseDb();
 
@@ -65,6 +67,7 @@ export async function createConversation({
 
   const conversationData: Omit<Conversation, 'id'> = {
     uid,
+    personId: personId ?? null,
     title,
     summary: null,
     createdAt: new Date().toISOString(),
@@ -144,6 +147,38 @@ export async function getConversations(
       id: doc.id,
       ...data,
       // Convert Firestore Timestamps to ISO strings
+      createdAt: toISOString(data.createdAt),
+      updatedAt: toISOString(data.updatedAt),
+    } as Conversation;
+  });
+}
+
+/**
+ * Get active conversations for a user linked to a specific person.
+ *
+ * Note: Firestore may require a composite index for (uid, status, personId, createdAt).
+ */
+export async function getConversationsForPerson(
+  uid: string,
+  personId: string,
+  maxResults = 50
+): Promise<Conversation[]> {
+  const db = getFirebaseDb();
+  const q = query(
+    collection(db, 'conversations'),
+    where('uid', '==', uid),
+    where('status', '==', 'active'),
+    where('personId', '==', personId),
+    orderBy('createdAt', 'desc'),
+    limit(maxResults)
+  );
+
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map((doc) => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      ...data,
       createdAt: toISOString(data.createdAt),
       updatedAt: toISOString(data.updatedAt),
     } as Conversation;
@@ -243,6 +278,21 @@ export async function updateConversationTitle(
   const db = getFirebaseDb();
   await updateDoc(doc(db, 'conversations', conversationId), {
     title,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+/**
+ * Link a conversation to a person.
+ * Pass null to unlink.
+ */
+export async function updateConversationPerson(
+  conversationId: string,
+  personId: string | null
+): Promise<void> {
+  const db = getFirebaseDb();
+  await updateDoc(doc(db, 'conversations', conversationId), {
+    personId,
     updatedAt: serverTimestamp(),
   });
 }

@@ -36,6 +36,8 @@ export type ConversationStatus = 'active' | 'archived' | 'deleted';
 export interface Conversation {
   id: string;
   uid: string;
+  /** Optional link to a Person (People layer). Null/undefined allowed for back-compat. */
+  personId?: string | null;
   title: string;
   summary: string | null; // AI-generated 1-liner
   createdAt: string;
@@ -44,6 +46,62 @@ export interface Conversation {
   status: ConversationStatus;
   hasUnpack: boolean;
   lastUnpackAt: string | null;
+  schemaVersion: number;
+}
+
+// ============================================================================
+// People (1:1 Relationships)
+// ============================================================================
+
+export type RelationshipType =
+  | 'self'
+  | 'manager'
+  | 'direct_report'
+  | 'peer'
+  | 'mentor'
+  | 'role_model'
+  | 'friend'
+  | 'spouse_wife'
+  | 'spouse_husband'
+  | 'partner'
+  | 'father'
+  | 'mother'
+  | 'child'
+  | 'other';
+
+export interface Person {
+  id: string;
+  uid: string;
+  displayName: string;
+  relationshipType: RelationshipType;
+  importanceNote: string | null;
+  profileNotes: string | null;
+  createdAt: string;
+  updatedAt: string;
+  schemaVersion: number;
+}
+
+export type EntryType = 'interaction' | 'brain_dump' | 'note';
+
+export type EntryWhy =
+  | 'dont_know_how_to_respond'
+  | 'feeling_activated'
+  | 'i_think_i_hurt_them'
+  | 'need_to_set_boundary'
+  | 'trying_to_repair'
+  | 'saving_for_later';
+
+export interface Entry {
+  id: string;
+  uid: string;
+  personId: string;
+  type: EntryType;
+  why: EntryWhy;
+  whatTheySaid: string | null;
+  whatISaid: string | null;
+  content: string | null;
+  createdAt: string;
+  updatedAt: string;
   schemaVersion: number;
 }
 

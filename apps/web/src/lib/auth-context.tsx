@@ -11,12 +11,14 @@ import {
   GoogleAuthProvider,
   onAuthStateChanged,
   signInWithPopup,
+  signInAnonymously,
   signOut as firebaseSignOut,
   type User,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { getFirebaseAuth, getFirebaseDb } from './firebase';
 import { useUserStore } from './stores/user-store';
+import { isTestAuthEnabled, isTestEnvironment } from './test-auth';
 import type { UserProfile } from '@mora/core';
 import { CURRENT_SCHEMA_VERSION } from '@mora/core';
 
@@ -47,26 +49,68 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const { setProfile, clearProfile } = useUserStore();
 
   useEffect(() => {
-    const auth = getFirebaseAuth();
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser);
+    let unsubscribe: (() => void) | null = null;
+    let isCancelled = false;
 
-      if (firebaseUser) {
+    const run = async () => {
+      const auth = getFirebaseAuth();
+
+      // Test-mode auth: when running against emulators, sign in anonymously so
+      // Firestore rules work and AuthGuard doesn't redirect.
+      if (isTestEnvironment() && isTestAuthEnabled() && !auth.currentUser) {
         try {
-          // Fetch or create user profile in Firestore
-          const profile = await getOrCreateUserProfile(firebaseUser);
-          setProfile(profile);
+          await signInAnonymously(auth);
         } catch (error) {
-          console.error('Failed to get/create user profile:', error);
+          console.error('[TestAuth] Failed to sign in anonymously:', error);
         }
-      } else {
-        clearProfile();
       }
 
-      setLoading(false);
-    });
+      if (isCancelled) return;
 
-    return () => unsubscribe();
+      unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+        setUser(firebaseUser);
+
+        if (firebaseUser) {
+          try {
+            // Optimistic local profile so the app can function immediately (uid-scoped).
+            // Firestore remains the source of truth; we overwrite if fetch/create succeeds.
+            const now = new Date().toISOString();
+            const fallbackProfile: UserProfile = {
+              uid: firebaseUser.uid,
+              email: firebaseUser.email,
+              displayName: firebaseUser.displayName,
+              photoURL: firebaseUser.photoURL,
+              isPro: false,
+              subscriptionTier: 'free',
+              stripeCustomerId: null,
+              unpacksUsedThisMonth: 0,
+              unpacksResetAt: getNextMonthReset(),
+              createdAt: now,
+              updatedAt: now,
+              schemaVersion: CURRENT_SCHEMA_VERSION,
+            };
+
+            setProfile(fallbackProfile);
+
+            const profile = await getOrCreateUserProfile(firebaseUser);
+            setProfile(profile);
+          } catch (error) {
+            console.error('Failed to get/create user profile:', error);
+          }
+        } else {
+          clearProfile();
+        }
+
+        setLoading(false);
+      });
+    };
+
+    run();
+
+    return () => {
+      isCancelled = true;
+      unsubscribe?.();
+    };
   }, [setProfile, clearProfile]);
 
   const signInWithGoogle = async () => {
