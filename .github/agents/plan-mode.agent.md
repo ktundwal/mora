@@ -1,7 +1,7 @@
 ---
 description: 'Strategic planning mode - analyze, research, and plan before implementation'
 name: 'Plan Mode'
-tools: ['codebase', 'search', 'usages', 'problems', 'fetch', 'githubRepo', 'changes']
+tools: ['vscode', 'execute', 'read', 'github/*', 'filesystem/*', 'edit', 'search', 'web', 'gitkraken/*', 'agent', 'memory', 'todo']
 handoffs:
   - label: 'Implement Plan'
     agent: 'agent'

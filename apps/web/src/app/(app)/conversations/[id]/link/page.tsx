@@ -13,6 +13,7 @@ import {
 } from '@/lib/stores/person-store';
 import { getConversation, updateConversationPerson } from '@/lib/services/conversation-service';
 import { useUserStore } from '@/lib/stores/user-store';
+import { useCrypto } from '@/lib/crypto/key-context';
 import type { Conversation, Person, RelationshipType } from '@mora/core';
 import { cn } from '@/lib/utils';
 
@@ -42,6 +43,7 @@ export default function LinkConversationPage() {
   const people = usePersonStore(selectPeople);
   const peopleLoading = usePersonStore(selectPeopleLoading);
   const { fetchPeople } = usePersonStore();
+  const { status: cryptoStatus } = useCrypto();
 
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [isLoadingConversation, setIsLoadingConversation] = useState(true);
@@ -50,12 +52,13 @@ export default function LinkConversationPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (cryptoStatus !== 'ready') return;
     fetchPeople();
-  }, [fetchPeople]);
+  }, [fetchPeople, cryptoStatus]);
 
   useEffect(() => {
     const loadConversation = async () => {
-      if (!profile?.uid) return;
+      if (!profile?.uid || cryptoStatus !== 'ready') return;
 
       setIsLoadingConversation(true);
       try {
@@ -79,7 +82,7 @@ export default function LinkConversationPage() {
     };
 
     loadConversation();
-  }, [conversationId, profile?.uid]);
+  }, [conversationId, profile?.uid, cryptoStatus]);
 
   const handleLink = async () => {
     if (!selectedPersonId) return;

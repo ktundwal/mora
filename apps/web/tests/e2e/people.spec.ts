@@ -18,11 +18,67 @@ async function expectTestAuthEnabled(page: import('@playwright/test').Page) {
   });
 }
 
+async function getTestUserUid(page: import('@playwright/test').Page): Promise<string> {
+  const uidParagraph = page.locator('p', { hasText: 'UID:' }).first();
+  await expect(uidParagraph).toBeVisible({ timeout: 15_000 });
+  const uidText = await uidParagraph.innerText();
+  const uid = uidText.replace(/^.*UID:\s*/i, '').trim();
+  if (!uid) throw new Error('Unable to read test user UID');
+  return uid;
+}
+
+async function ensureEncryptionKey(page: import('@playwright/test').Page, uid: string) {
+  await page.goto('/setup');
+
+  await page.evaluate(async (uidArg) => {
+    const uid = uidArg as string;
+
+    const key = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);
+    const raw = new Uint8Array(await crypto.subtle.exportKey('raw', key));
+    const base64 = btoa(String.fromCharCode(...raw));
+
+    await new Promise<void>((resolve, reject) => {
+      const request = indexedDB.open('mora-crypto', 1);
+
+      request.onupgradeneeded = () => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains('keys')) {
+          db.createObjectStore('keys', { keyPath: 'uid' });
+        }
+      };
+
+      request.onerror = () => reject(request.error ?? new Error('Failed to open IndexedDB'));
+
+      request.onsuccess = () => {
+        const db = request.result;
+        const tx = db.transaction('keys', 'readwrite');
+        const store = tx.objectStore('keys');
+        store.put({
+          uid,
+          encryptedMasterKey: base64,
+          passphraseSalt: '',
+          iv: '',
+          passphraseRequired: false,
+          storedAt: new Date().toISOString(),
+        });
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error ?? new Error('Failed to save device key'));
+      };
+    });
+  }, uid);
+
+  await page.reload({ waitUntil: 'load' });
+  await page.waitForURL((url) => !url.pathname.startsWith('/setup'), { timeout: 15_000 });
+  await page.goto('/');
+}
+
 test.describe('People (SPEC-002)', () => {
   test('can create a person and see them in the list', async ({ page }) => {
     const personName = `Sam Test ${Date.now()}`;
 
     await expectTestAuthEnabled(page);
+    const uid = await getTestUserUid(page);
+    await ensureEncryptionKey(page, uid);
 
     await page.goto('/people');
 
@@ -41,6 +97,8 @@ test.describe('People (SPEC-002)', () => {
     const theySaid = 'Can we talk about what happened yesterday?';
 
     await expectTestAuthEnabled(page);
+    const uid = await getTestUserUid(page);
+    await ensureEncryptionKey(page, uid);
 
     await page.goto('/people');
     await expect(page.getByRole('heading', { name: /^People$/ })).toBeVisible({ timeout: 15_000 });
@@ -71,6 +129,8 @@ test.describe('People (SPEC-002)', () => {
     const personName = `Link Test ${Date.now()}`;
 
     await expectTestAuthEnabled(page);
+    const uid = await getTestUserUid(page);
+    await ensureEncryptionKey(page, uid);
 
     // First, create a person to link to
     await page.goto('/people');
@@ -94,6 +154,8 @@ test.describe('People (SPEC-002)', () => {
     // The emulator should give us a new user each time.
 
     await expectTestAuthEnabled(page);
+    const uid = await getTestUserUid(page);
+    await ensureEncryptionKey(page, uid);
 
     // Try to go directly to /conversations
     await page.goto('/conversations');

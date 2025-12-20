@@ -12,7 +12,9 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@mora/core": ["../../packages/core/src/index.ts"],
+      "@mora/core/*": ["../../packages/core/src/*"]
     }
   },
   "include": [

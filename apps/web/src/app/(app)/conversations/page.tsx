@@ -16,6 +16,7 @@ import {
   selectPeople,
   selectPeopleLoading,
 } from '@/lib/stores/person-store';
+import { useCrypto } from '@/lib/crypto/key-context';
 import { cn } from '@/lib/utils';
 import type { Conversation } from '@mora/core';
 
@@ -28,11 +29,13 @@ export default function ConversationsPage() {
   const people = usePersonStore(selectPeople);
   const peopleLoading = usePersonStore(selectPeopleLoading);
   const { fetchPeople } = usePersonStore();
+  const { status: cryptoStatus } = useCrypto();
 
   useEffect(() => {
+    if (cryptoStatus !== 'ready') return;
     fetchConversations();
     fetchPeople();
-  }, [fetchConversations, fetchPeople]);
+  }, [fetchConversations, fetchPeople, cryptoStatus]);
 
   // REQ-ONB-001/002: Redirect to People if user has no people yet
   useEffect(() => {

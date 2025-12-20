@@ -4,5 +4,5 @@
 export { useAuth, AuthProvider } from './auth-context';
 export { AuthGuard, withAuthGuard } from './auth-guard';
 export { useUserStore } from './stores/user-store';
-export { getFirebaseAuth, getFirebaseDb, getFirebaseStorage } from './firebase';
+export { getFirebaseAuth, getFirebaseDb, getFirebaseFunctions, getFirebaseStorage } from './firebase';
 export { cn } from './utils';

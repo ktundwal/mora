@@ -27,7 +27,9 @@ import type {
   ParsedMessage,
   SpeakerMapping,
 } from '@mora/core';
-import { CURRENT_SCHEMA_VERSION, applyMapping } from '@mora/core';
+import { CURRENT_SCHEMA_VERSION, applyMapping, encryptFields, decryptFields } from '@mora/core';
+import type { FieldSpec } from '@mora/core';
+import { getActiveCryptoKey } from '../crypto/active-key';
 
 // ============================================================================
 // Types
@@ -40,6 +42,16 @@ export interface CreateConversationParams {
   speakerMapping: SpeakerMapping;
   personId?: string | null;
 }
+
+const conversationEncryptedFields: FieldSpec<Omit<Conversation, 'id'>>[] = [
+  { field: 'title', encoding: 'string' },
+  { field: 'summary', encoding: 'string' },
+];
+
+const messageEncryptedFields: FieldSpec<Omit<Message, 'id'>>[] = [
+  { field: 'text', encoding: 'string' },
+  { field: 'originalRaw', encoding: 'string' },
+];
 
 // ============================================================================
 // Create Operations
@@ -59,6 +71,7 @@ export async function createConversation({
   personId,
 }: CreateConversationParams): Promise<string> {
   const db = getFirebaseDb();
+  const cryptoKey = getActiveCryptoKey();
 
   // Create conversation document FIRST (not in batch)
   // This is required because Firestore rules for sub-collections use get() 
@@ -80,8 +93,10 @@ export async function createConversation({
   };
 
   // Write conversation first so security rules can verify ownership
+  const encryptedConversation = await encryptFields(conversationData, conversationEncryptedFields, cryptoKey);
+
   await setDoc(convRef, {
-    ...conversationData,
+    ...encryptedConversation,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
@@ -91,7 +106,11 @@ export async function createConversation({
   const messagesRef = collection(db, 'conversations', convRef.id, 'messages');
 
   // Firestore batches are limited to 500 operations
-  const messagesToWrite = messages.slice(0, 500);
+  const messagesToWrite = await Promise.all(
+    messages.slice(0, 500).map((message) =>
+      encryptFields(message, messageEncryptedFields, cryptoKey)
+    )
+  );
   
   if (messagesToWrite.length > 0) {
     const batch = writeBatch(db);
@@ -105,7 +124,12 @@ export async function createConversation({
   // If we have more than 500 messages, write them in subsequent batches
   if (messages.length > 500) {
     const remainingMessages = messages.slice(500);
-    const chunks = chunkArray(remainingMessages, 500);
+    const encryptedRemaining = await Promise.all(
+      remainingMessages.map((message) =>
+        encryptFields(message, messageEncryptedFields, cryptoKey)
+      )
+    );
+    const chunks = chunkArray(encryptedRemaining, 500);
 
     for (const chunk of chunks) {
       const chunkBatch = writeBatch(db);
@@ -132,6 +156,7 @@ export async function getConversations(
   maxResults = 50
 ): Promise<Conversation[]> {
   const db = getFirebaseDb();
+  const cryptoKey = getActiveCryptoKey();
   const q = query(
     collection(db, 'conversations'),
     where('uid', '==', uid),
@@ -141,16 +166,23 @@ export async function getConversations(
   );
 
   const snapshot = await getDocs(q);
-  return snapshot.docs.map((doc) => {
-    const data = doc.data();
-    return {
-      id: doc.id,
-      ...data,
-      // Convert Firestore Timestamps to ISO strings
-      createdAt: toISOString(data.createdAt),
-      updatedAt: toISOString(data.updatedAt),
-    } as Conversation;
-  });
+  const conversations = await Promise.all(
+    snapshot.docs.map(async (docSnap) => {
+      const data = docSnap.data();
+      const decrypted = await decryptFields<Conversation>(
+        { id: docSnap.id, ...data } as Conversation,
+        conversationEncryptedFields as FieldSpec<Conversation>[],
+        cryptoKey
+      );
+      return {
+        ...decrypted,
+        createdAt: toISOString(data.createdAt),
+        updatedAt: toISOString(data.updatedAt),
+      } as Conversation;
+    })
+  );
+
+  return conversations;
 }
 
 /**
@@ -164,6 +196,7 @@ export async function getConversationsForPerson(
   maxResults = 50
 ): Promise<Conversation[]> {
   const db = getFirebaseDb();
+  const cryptoKey = getActiveCryptoKey();
   const q = query(
     collection(db, 'conversations'),
     where('uid', '==', uid),
@@ -174,15 +207,23 @@ export async function getConversationsForPerson(
   );
 
   const snapshot = await getDocs(q);
-  return snapshot.docs.map((doc) => {
-    const data = doc.data();
-    return {
-      id: doc.id,
-      ...data,
-      createdAt: toISOString(data.createdAt),
-      updatedAt: toISOString(data.updatedAt),
-    } as Conversation;
-  });
+  const conversations = await Promise.all(
+    snapshot.docs.map(async (docSnap) => {
+      const data = docSnap.data();
+      const decrypted = await decryptFields<Conversation>(
+        { id: docSnap.id, ...data } as Conversation,
+        conversationEncryptedFields as FieldSpec<Conversation>[],
+        cryptoKey
+      );
+      return {
+        ...decrypted,
+        createdAt: toISOString(data.createdAt),
+        updatedAt: toISOString(data.updatedAt),
+      } as Conversation;
+    })
+  );
+
+  return conversations;
 }
 
 /**
@@ -197,6 +238,7 @@ export async function getConversation(
   currentUid?: string
 ): Promise<Conversation | null> {
   const db = getFirebaseDb();
+  const cryptoKey = getActiveCryptoKey();
   const docSnap = await getDoc(doc(db, 'conversations', conversationId));
 
   if (!docSnap.exists()) {
@@ -212,9 +254,14 @@ export async function getConversation(
     return null;
   }
 
+  const decrypted = await decryptFields<Conversation>(
+    { id: docSnap.id, ...data } as Conversation,
+    conversationEncryptedFields as FieldSpec<Conversation>[],
+    cryptoKey
+  );
+
   return {
-    id: docSnap.id,
-    ...data,
+    ...decrypted,
     createdAt: toISOString(data.createdAt),
     updatedAt: toISOString(data.updatedAt),
   } as Conversation;
@@ -225,16 +272,26 @@ export async function getConversation(
  */
 export async function getMessages(conversationId: string): Promise<Message[]> {
   const db = getFirebaseDb();
+  const cryptoKey = getActiveCryptoKey();
   const q = query(
     collection(db, 'conversations', conversationId, 'messages'),
     orderBy('order', 'asc')
   );
 
   const snapshot = await getDocs(q);
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Message[];
+  const messages = await Promise.all(
+    snapshot.docs.map(async (docSnap) => {
+      const data = docSnap.data();
+      const decrypted = await decryptFields<Message>(
+        { id: docSnap.id, ...data } as Message,
+        messageEncryptedFields as FieldSpec<Message>[],
+        cryptoKey
+      );
+      return decrypted as Message;
+    })
+  );
+
+  return messages;
 }
 
 // ============================================================================
@@ -276,8 +333,15 @@ export async function updateConversationTitle(
   title: string
 ): Promise<void> {
   const db = getFirebaseDb();
+  const cryptoKey = getActiveCryptoKey();
+  const encrypted = await encryptFields(
+    { title } as Record<string, unknown>,
+    [{ field: 'title', encoding: 'string' }],
+    cryptoKey
+  );
+
   await updateDoc(doc(db, 'conversations', conversationId), {
-    title,
+    ...encrypted,
     updatedAt: serverTimestamp(),
   });
 }

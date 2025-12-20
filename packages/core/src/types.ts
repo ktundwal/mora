@@ -2,7 +2,43 @@
 // All Firestore documents should include schemaVersion for migrations
 
 /** Current schema version - increment when making breaking changes */
-export const CURRENT_SCHEMA_VERSION = 1;
+export const CURRENT_SCHEMA_VERSION = 2;
+
+// ============================================================================
+// Encryption Types
+// ============================================================================
+
+/** Marker type for encrypted string fields (Base64 ciphertext) */
+export type EncryptedString = string;
+
+/** Encrypted array of strings (JSON encoded then encrypted) */
+export type EncryptedStringArray = string;
+
+/** Envelope containing AES-GCM ciphertext */
+export interface EncryptedEnvelope {
+  ct: string; // Base64 ciphertext
+  iv: string; // Base64 IV (12 bytes)
+  v: number; // Encryption version
+}
+
+/** User-level encryption metadata (stored with user profile) */
+export interface UserKeyMetadata {
+  keySalt: string | null;
+  encryptionVersion: number | null;
+  recoveryPhraseHash: string | null;
+  keyCreatedAt: string | null;
+  schemaVersion: number;
+}
+
+/** Local device key storage (IndexedDB, never Firestore) */
+export interface DeviceKeyStore {
+  uid: string;
+  encryptedMasterKey: string;
+  passphraseSalt: string;
+  iv: string;
+  passphraseRequired: boolean;
+  storedAt: string;
+}
 
 // ============================================================================
 // User & Subscription
@@ -20,6 +56,10 @@ export interface UserProfile {
   stripeCustomerId: string | null;
   unpacksUsedThisMonth: number;
   unpacksResetAt: string; // ISO string - when the monthly counter resets
+  encryptionVersion?: number | null;
+  recoveryPhraseHash?: string | null;
+  keySalt?: string | null;
+  encryptionEnabled?: boolean;
   createdAt: string;
   updatedAt: string;
   schemaVersion: number;
@@ -258,6 +298,27 @@ export interface GenerateDraftsRequest {
 
 export interface GenerateDraftsResponse {
   drafts: ReplyDraft[];
+}
+
+// =============================================================================
+// AI Proxy Types
+// =============================================================================
+
+export interface ChatMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
+
+export interface AiProxyRequest {
+  model: string;
+  messages: ChatMessage[];
+  temperature?: number;
+}
+
+export interface AiProxyResponse {
+  content: string;
+  usage?: unknown;
+  model?: string;
 }
 
 // ============================================================================

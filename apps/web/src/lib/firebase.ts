@@ -5,6 +5,7 @@
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator, type Auth } from 'firebase/auth';
 import { getFirestore, connectFirestoreEmulator, type Firestore } from 'firebase/firestore';
+import { getFunctions, connectFunctionsEmulator, type Functions } from 'firebase/functions';
 import { getStorage, connectStorageEmulator, type FirebaseStorage } from 'firebase/storage';
 
 const firebaseConfig = {
@@ -31,9 +32,11 @@ const storageEmulatorPort = Number(process.env.NEXT_PUBLIC_STORAGE_EMULATOR_PORT
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
 let db: Firestore | null = null;
+let functions: Functions | null = null;
 let storage: FirebaseStorage | null = null;
 let authEmulatorConnected = false;
 let firestoreEmulatorConnected = false;
+let functionsEmulatorConnected = false;
 let storageEmulatorConnected = false;
 
 function getFirebaseApp(): FirebaseApp {
@@ -66,6 +69,13 @@ export function getFirebaseDb(): Firestore {
   return db;
 }
 
+export function getFirebaseFunctions(): Functions {
+  if (functions) return functions;
+  functions = getFunctions(getFirebaseApp());
+  connectToEmulators();
+  return functions;
+}
+
 export function getFirebaseStorage(): FirebaseStorage {
   if (storage) return storage;
   storage = getStorage(getFirebaseApp());
@@ -90,6 +100,12 @@ function connectToEmulators(): void {
     firestoreEmulatorConnected = true;
     console.log('[Firebase] Connecting Firestore emulator...');
     connectFirestoreEmulator(db, firestoreEmulatorHost, firestoreEmulatorPort);
+  }
+
+  if (functions && !functionsEmulatorConnected) {
+    functionsEmulatorConnected = true;
+    console.log('[Firebase] Connecting Functions emulator...');
+    connectFunctionsEmulator(functions, authEmulatorHost, 5001);
   }
 
   if (storage && !storageEmulatorConnected) {

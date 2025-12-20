@@ -39,13 +39,6 @@
 
 ---
 
-## 🚧 In Progress
-
-### Deployment: Prod Environment
-- [ ] Run bootstrap for `prod`: `./infra/scripts/bootstrap-all.sh prod`
-- [ ] Add `mora-prod` domain to Firebase Auth authorized domains
-- [ ] Delete legacy `FIREBASE_SERVICE_ACCOUNT_JSON` secret after WIF verified
-
 ### SPEC-002: People Layer (v1)
 - [x] Shared types in `@mora/core` (Person/Entry + Conversation.personId)
 - [x] Firestore rules for `/people` + `/people/{id}/entries`
@@ -58,6 +51,23 @@
 - [x] Delete functionality: Person and Entry deletion with UI
 - [x] Unpack/Follow-up placeholders: disabled buttons on entry cards
 - [x] E2E tests: 7 tests covering People, Entries, onboarding redirect, link page
+
+### SPEC-003: E2EE Cutover Follow-ups
+- [x] Run Firestore wipe before release (breaking change). **Dev wiped via `firebase firestore:delete`. Prod pending.**
+- [x] Wire client AI calls to the proxy Function (`proxyChat`). **Decrypted content stays client-side.**
+- [x] Expand encryption coverage to artifacts/unpacks/replyDrafts/playbook.
+- [x] Settings UX for export/delete/account removal.
+- [x] Backend for export/delete/account. **Deferred to prod bootstrap: email delivery, monitoring.**
+- [x] Fix "Master encryption key not loaded" race condition by gating data fetches on `cryptoStatus === 'ready'`.
+
+---
+
+## 🚧 In Progress
+
+### Deployment: Prod Environment
+- [ ] Run bootstrap for `prod`: `./infra/scripts/bootstrap-all.sh prod`
+- [ ] Add `mora-prod` domain to Firebase Auth authorized domains
+- [ ] Delete legacy `FIREBASE_SERVICE_ACCOUNT_JSON` secret after WIF verified
 
 ---
 

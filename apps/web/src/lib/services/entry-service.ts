@@ -17,7 +17,9 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 import type { Entry, EntryType, EntryWhy } from '@mora/core';
-import { CURRENT_SCHEMA_VERSION } from '@mora/core';
+import { CURRENT_SCHEMA_VERSION, encryptFields, decryptFields } from '@mora/core';
+import type { FieldSpec } from '@mora/core';
+import { getActiveCryptoKey } from '../crypto/active-key';
 import { getFirebaseDb } from '../firebase';
 
 export interface CreateEntryParams {
@@ -30,9 +32,16 @@ export interface CreateEntryParams {
   content?: string | null;
 }
 
+const entryEncryptedFields: FieldSpec<Omit<Entry, 'id'>>[] = [
+  { field: 'whatTheySaid', encoding: 'string' },
+  { field: 'whatISaid', encoding: 'string' },
+  { field: 'content', encoding: 'string' },
+];
+
 export async function createEntry(params: CreateEntryParams): Promise<string> {
   const db = getFirebaseDb();
   const ref = doc(collection(db, 'people', params.personId, 'entries'));
+  const cryptoKey = getActiveCryptoKey();
 
   const nowIso = new Date().toISOString();
   const entryData: Omit<Entry, 'id'> = {
@@ -48,8 +57,10 @@ export async function createEntry(params: CreateEntryParams): Promise<string> {
     schemaVersion: CURRENT_SCHEMA_VERSION,
   };
 
+  const encrypted = await encryptFields(entryData, entryEncryptedFields, cryptoKey);
+
   await setDoc(ref, {
-    ...entryData,
+    ...encrypted,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
@@ -62,6 +73,7 @@ export async function getEntriesForPerson(
   maxResults = 50
 ): Promise<Entry[]> {
   const db = getFirebaseDb();
+  const cryptoKey = getActiveCryptoKey();
   const q = query(
     collection(db, 'people', personId, 'entries'),
     orderBy('createdAt', 'desc'),
@@ -69,15 +81,23 @@ export async function getEntriesForPerson(
   );
 
   const snapshot = await getDocs(q);
-  return snapshot.docs.map((snap) => {
-    const data = snap.data();
-    return {
-      id: snap.id,
-      ...data,
-      createdAt: toISOString(data.createdAt),
-      updatedAt: toISOString(data.updatedAt),
-    } as Entry;
-  });
+  const entries = await Promise.all(
+    snapshot.docs.map(async (snap) => {
+      const data = snap.data();
+      const decrypted = await decryptFields<Entry>(
+        { id: snap.id, ...data } as Entry,
+        entryEncryptedFields as FieldSpec<Entry>[],
+        cryptoKey
+      );
+      return {
+        ...decrypted,
+        createdAt: toISOString(data.createdAt),
+        updatedAt: toISOString(data.updatedAt),
+      } as Entry;
+    })
+  );
+
+  return entries;
 }
 
 function toISOString(value: Timestamp | string | undefined): string {

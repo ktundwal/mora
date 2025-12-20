@@ -22,6 +22,7 @@ import {
   selectPeopleError,
 } from '@/lib/stores/person-store';
 import { useUserStore } from '@/lib/stores/user-store';
+import { useCrypto } from '@/lib/crypto/key-context';
 import type { RelationshipType } from '@mora/core';
 
 const RELATIONSHIP_OPTIONS: Array<{ value: RelationshipType; label: string }> = [
@@ -48,6 +49,7 @@ export default function PeoplePage() {
   const { fetchPeople, addPerson } = usePersonStore();
 
   const { profile } = useUserStore();
+  const { status: cryptoStatus } = useCrypto();
 
   const [displayName, setDisplayName] = useState('');
   const [relationshipType, setRelationshipType] = useState<RelationshipType>('partner');
@@ -55,9 +57,9 @@ export default function PeoplePage() {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    if (!profile?.uid) return;
+    if (!profile?.uid || cryptoStatus !== 'ready') return;
     fetchPeople();
-  }, [fetchPeople, profile?.uid]);
+  }, [fetchPeople, profile?.uid, cryptoStatus]);
 
   const isOnboarding = useMemo(() => people.length === 0, [people.length]);
 

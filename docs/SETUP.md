@@ -15,6 +15,10 @@ We recommend using [Volta](https://volta.sh/) for automatic Node version managem
 curl https://get.volta.sh | bash
 
 # Volta will automatically use Node 20.18.0 (configured in package.json)
+
+# Ensure Volta is on your PATH for every shell
+export VOLTA_HOME="$HOME/.volta"
+export PATH="$VOLTA_HOME/bin:$PATH"
 ```
 
 Or use nvm:

@@ -1,7 +1,10 @@
 'use client';
 
 import { type ReactNode } from 'react';
+import { ThemeProvider } from 'next-themes';
+import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider } from '@/lib/auth-context';
+import { CryptoProvider } from '@/lib/crypto/key-context';
 import { exposeTestAuthToWindow } from '@/lib/test-auth';
 
 interface ProvidersProps {
@@ -14,5 +17,14 @@ interface ProvidersProps {
  */
 export function Providers({ children }: ProvidersProps) {
   exposeTestAuthToWindow();
-  return <AuthProvider>{children}</AuthProvider>;
+  return (
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <AuthProvider>
+        <CryptoProvider>
+          {children}
+          <Toaster richColors position="top-center" />
+        </CryptoProvider>
+      </AuthProvider>
+    </ThemeProvider>
+  );
 }

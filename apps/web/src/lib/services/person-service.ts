@@ -19,7 +19,9 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 import type { Person, RelationshipType } from '@mora/core';
-import { CURRENT_SCHEMA_VERSION } from '@mora/core';
+import { CURRENT_SCHEMA_VERSION, encryptFields, decryptFields } from '@mora/core';
+import type { FieldSpec } from '@mora/core';
+import { getActiveCryptoKey } from '../crypto/active-key';
 import { getFirebaseDb } from '../firebase';
 
 export interface CreatePersonParams {
@@ -30,9 +32,16 @@ export interface CreatePersonParams {
   profileNotes?: string | null;
 }
 
+const personEncryptedFields: FieldSpec<Omit<Person, 'id'>>[] = [
+  { field: 'displayName', encoding: 'string' },
+  { field: 'importanceNote', encoding: 'string' },
+  { field: 'profileNotes', encoding: 'string' },
+];
+
 export async function createPerson(params: CreatePersonParams): Promise<string> {
   const db = getFirebaseDb();
   const ref = doc(collection(db, 'people'));
+  const cryptoKey = getActiveCryptoKey();
 
   const nowIso = new Date().toISOString();
   const personData: Omit<Person, 'id'> = {
@@ -46,8 +55,10 @@ export async function createPerson(params: CreatePersonParams): Promise<string> 
     schemaVersion: CURRENT_SCHEMA_VERSION,
   };
 
+  const encrypted = await encryptFields(personData, personEncryptedFields, cryptoKey);
+
   await setDoc(ref, {
-    ...personData,
+    ...encrypted,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
@@ -60,14 +71,18 @@ export async function updatePerson(
   updates: Partial<Pick<Person, 'displayName' | 'relationshipType' | 'importanceNote' | 'profileNotes'>>
 ): Promise<void> {
   const db = getFirebaseDb();
+  const cryptoKey = getActiveCryptoKey();
+  const encrypted = await encryptFields(updates, personEncryptedFields as FieldSpec<typeof updates>[], cryptoKey);
+
   await updateDoc(doc(db, 'people', personId), {
-    ...updates,
+    ...encrypted,
     updatedAt: serverTimestamp(),
   });
 }
 
 export async function getPeople(uid: string, maxResults = 50): Promise<Person[]> {
   const db = getFirebaseDb();
+  const cryptoKey = getActiveCryptoKey();
   const q = query(
     collection(db, 'people'),
     where('uid', '==', uid),
@@ -76,15 +91,21 @@ export async function getPeople(uid: string, maxResults = 50): Promise<Person[]>
 
   const snapshot = await getDocs(q);
 
-  const people = snapshot.docs.map((snap) => {
-    const data = snap.data();
-    return {
-      id: snap.id,
-      ...data,
-      createdAt: toISOString(data.createdAt),
-      updatedAt: toISOString(data.updatedAt),
-    } as Person;
-  });
+  const people = await Promise.all(
+    snapshot.docs.map(async (snap) => {
+      const data = snap.data();
+      const decrypted = await decryptFields<Person>(
+        { id: snap.id, ...data } as Person,
+        personEncryptedFields as FieldSpec<Person>[],
+        cryptoKey
+      );
+      return {
+        ...decrypted,
+        createdAt: toISOString(data.createdAt),
+        updatedAt: toISOString(data.updatedAt),
+      } as Person;
+    })
+  );
 
   // Sort client-side to avoid composite index requirements for v1.
   people.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
@@ -94,15 +115,21 @@ export async function getPeople(uid: string, maxResults = 50): Promise<Person[]>
 
 export async function getPerson(personId: string, currentUid?: string): Promise<Person | null> {
   const db = getFirebaseDb();
+  const cryptoKey = getActiveCryptoKey();
   const snap = await getDoc(doc(db, 'people', personId));
   if (!snap.exists()) return null;
 
   const data = snap.data();
   if (currentUid && data.uid !== currentUid) return null;
 
+  const decrypted = await decryptFields<Person>(
+    { id: snap.id, ...data } as Person,
+    personEncryptedFields as FieldSpec<Person>[],
+    cryptoKey
+  );
+
   return {
-    id: snap.id,
-    ...data,
+    ...decrypted,
     createdAt: toISOString(data.createdAt),
     updatedAt: toISOString(data.updatedAt),
   } as Person;
