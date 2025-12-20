@@ -15,16 +15,29 @@ export function CryptoGuard({ children }: CryptoGuardProps) {
   const router = useRouter();
   const pathname = usePathname();
 
+  // Check if current path is allowed (ignoring query params)
+  const isAllowedPath = ALLOWED_PATHS.some(path => pathname.startsWith(path));
+
+  console.log('[CryptoGuard]', { pathname, status, isAllowedPath });
+
   useEffect(() => {
-    if (status === 'missing' && !ALLOWED_PATHS.includes(pathname)) {
+    if (status === 'missing' && !isAllowedPath) {
       router.replace('/setup');
     }
-    if (status === 'locked' && !ALLOWED_PATHS.includes(pathname)) {
+    if (status === 'locked' && !isAllowedPath) {
       router.replace('/unlock');
     }
-  }, [pathname, router, status]);
+  }, [pathname, router, status, isAllowedPath]);
 
+  // Allow setup/unlock/recover pages to render immediately
+  if (isAllowedPath) {
+    console.log('[CryptoGuard] Rendering allowed path immediately');
+    return <>{children}</>;
+  }
+
+  // Show loading for other pages while crypto is initializing
   if (status === 'loading') {
+    console.log('[CryptoGuard] Showing loading spinner');
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="flex flex-col items-center gap-4">

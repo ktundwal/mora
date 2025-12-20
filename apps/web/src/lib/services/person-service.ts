@@ -21,7 +21,7 @@ import {
 import type { Person, RelationshipType } from '@mora/core';
 import { CURRENT_SCHEMA_VERSION, encryptFields, decryptFields } from '@mora/core';
 import type { FieldSpec } from '@mora/core';
-import { getActiveCryptoKey } from '../crypto/active-key';
+import { getActiveCryptoKey, hasActiveCryptoKey } from '../crypto/active-key';
 import { getFirebaseDb } from '../firebase';
 
 export interface CreatePersonParams {
@@ -41,8 +41,6 @@ const personEncryptedFields: FieldSpec<Omit<Person, 'id'>>[] = [
 export async function createPerson(params: CreatePersonParams): Promise<string> {
   const db = getFirebaseDb();
   const ref = doc(collection(db, 'people'));
-  const cryptoKey = getActiveCryptoKey();
-
   const nowIso = new Date().toISOString();
   const personData: Omit<Person, 'id'> = {
     uid: params.uid,
@@ -55,10 +53,15 @@ export async function createPerson(params: CreatePersonParams): Promise<string> 
     schemaVersion: CURRENT_SCHEMA_VERSION,
   };
 
-  const encrypted = await encryptFields(personData, personEncryptedFields, cryptoKey);
+  let finalData: any = personData;
+
+  if (hasActiveCryptoKey()) {
+    const cryptoKey = getActiveCryptoKey();
+    finalData = await encryptFields(personData, personEncryptedFields, cryptoKey);
+  }
 
   await setDoc(ref, {
-    ...encrypted,
+    ...finalData,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
@@ -71,18 +74,24 @@ export async function updatePerson(
   updates: Partial<Pick<Person, 'displayName' | 'relationshipType' | 'importanceNote' | 'profileNotes'>>
 ): Promise<void> {
   const db = getFirebaseDb();
-  const cryptoKey = getActiveCryptoKey();
-  const encrypted = await encryptFields(updates, personEncryptedFields as FieldSpec<typeof updates>[], cryptoKey);
+  let updatesToSave: any = updates;
+
+  if (hasActiveCryptoKey()) {
+    const cryptoKey = getActiveCryptoKey();
+    updatesToSave = await encryptFields(updates, personEncryptedFields as FieldSpec<typeof updates>[], cryptoKey);
+  }
 
   await updateDoc(doc(db, 'people', personId), {
-    ...encrypted,
+    ...updatesToSave,
     updatedAt: serverTimestamp(),
   });
 }
 
 export async function getPeople(uid: string, maxResults = 50): Promise<Person[]> {
   const db = getFirebaseDb();
-  const cryptoKey = getActiveCryptoKey();
+  // Removed unconditional key access to prevent errors if key is missing (e.g. race condition)
+  // const cryptoKey = getActiveCryptoKey(); 
+
   const q = query(
     collection(db, 'people'),
     where('uid', '==', uid),
@@ -94,16 +103,32 @@ export async function getPeople(uid: string, maxResults = 50): Promise<Person[]>
   const people = await Promise.all(
     snapshot.docs.map(async (snap) => {
       const data = snap.data();
-      const decrypted = await decryptFields<Person>(
-        { id: snap.id, ...data } as Person,
-        personEncryptedFields as FieldSpec<Person>[],
-        cryptoKey
-      );
-      return {
+      let decrypted: any = { id: snap.id, ...data };
+      const hasKey = hasActiveCryptoKey();
+
+      console.log(`[getPeople] Processing ${snap.id}. HasKey: ${hasKey}`);
+
+      if (hasKey) {
+        try {
+          const cryptoKey = getActiveCryptoKey();
+          decrypted = await decryptFields<Person>(
+            { id: snap.id, ...data } as Person,
+            personEncryptedFields as FieldSpec<Person>[],
+            cryptoKey
+          );
+        } catch (e) {
+          console.error(`Failed to decrypt person ${snap.id}:`, e);
+          // Return raw data if decryption fails
+        }
+      } else {
+        console.warn(`[getPeople] Skipping decryption for ${snap.id} because no active key.`);
+      }
+
+      return sanitizePerson({
         ...decrypted,
         createdAt: toISOString(data.createdAt),
         updatedAt: toISOString(data.updatedAt),
-      } as Person;
+      } as Person);
     })
   );
 
@@ -115,24 +140,47 @@ export async function getPeople(uid: string, maxResults = 50): Promise<Person[]>
 
 export async function getPerson(personId: string, currentUid?: string): Promise<Person | null> {
   const db = getFirebaseDb();
-  const cryptoKey = getActiveCryptoKey();
   const snap = await getDoc(doc(db, 'people', personId));
   if (!snap.exists()) return null;
 
   const data = snap.data();
   if (currentUid && data.uid !== currentUid) return null;
 
-  const decrypted = await decryptFields<Person>(
-    { id: snap.id, ...data } as Person,
-    personEncryptedFields as FieldSpec<Person>[],
-    cryptoKey
-  );
+  let decrypted: any = { id: snap.id, ...data };
 
-  return {
+  if (hasActiveCryptoKey()) {
+    try {
+      const cryptoKey = getActiveCryptoKey();
+      decrypted = await decryptFields<Person>(
+        { id: snap.id, ...data } as Person,
+        personEncryptedFields as FieldSpec<Person>[],
+        cryptoKey
+      );
+    } catch (e) {
+      console.error(`Failed to decrypt person ${personId}:`, e);
+    }
+  }
+
+  return sanitizePerson({
     ...decrypted,
     createdAt: toISOString(data.createdAt),
     updatedAt: toISOString(data.updatedAt),
-  } as Person;
+  } as Person);
+}
+
+// Helper to ensure we never return raw encrypted objects to the UI check
+function sanitizePerson(p: any): Person {
+  const sanitized = { ...p };
+  // Check fields expected to be strings
+  const stringFields = ['displayName', 'importanceNote', 'profileNotes'];
+
+  for (const field of stringFields) {
+    if (sanitized[field] && typeof sanitized[field] === 'object' && 'ct' in sanitized[field]) {
+      // It's still an encrypted envelope
+      sanitized[field] = 'Locked'; // or '[Encrypted]'
+    }
+  }
+  return sanitized as Person;
 }
 
 /**

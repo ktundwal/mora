@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,9 +9,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useCrypto } from '@/lib/crypto/key-context';
 import { useAuth } from '@/lib/auth-context';
+import { getFirebaseDb } from '@/lib/firebase';
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 
 export default function SetupPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const shouldMigrate = searchParams.get('migrate') === 'true';
   const { status, generateAndStoreKey, recoveryPhrase } = useCrypto();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -19,16 +23,34 @@ export default function SetupPage() {
   const [error, setError] = useState<string | null>(null);
   const [localPhrase, setLocalPhrase] = useState<string[] | null>(null);
 
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
   useEffect(() => {
-    if (status === 'ready') {
+    // Only auto-redirect if:
+    // 1. Encryption is ready
+    // 2. We're not in migration mode (or user has seen the recovery phrase)
+    // 3. We haven't already started redirecting
+    if (status === 'ready' && !shouldMigrate && !isRedirecting) {
       router.replace('/people');
     }
-  }, [router, status]);
+  }, [router, status, shouldMigrate, isRedirecting]);
 
   if (!user) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <p className="text-sm text-gray-600">Sign in to set up encryption.</p>
+      </div>
+    );
+  }
+
+  // Show loading only while crypto provider is initializing
+  if (status === 'loading') {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-sm text-gray-600">Loading encryption status...</p>
+        </div>
       </div>
     );
   }
@@ -49,22 +71,55 @@ export default function SetupPage() {
     }
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
+    if (!user) return;
+
+    setIsRedirecting(true);
+
+    // Trigger migration if we're in migration mode
+    if (shouldMigrate) {
+      try {
+        const { migrateGuestData } = await import('@/lib/migrate-guest-data');
+        await migrateGuestData(user.uid);
+      } catch (error) {
+        console.error('[Setup] Migration failed:', error);
+        // Continue to people page anyway
+      }
+    } else {
+      // If not migrating (new user direct sign up), mark onboarding as complete
+      // so they can access the app.
+      try {
+        const db = getFirebaseDb();
+        const userRef = doc(db, 'users', user.uid);
+        await updateDoc(userRef, {
+          onboardingCompleted: true,
+          updatedAt: serverTimestamp(),
+        });
+      } catch (e) {
+        console.error('[Setup] Failed to mark onboarding complete:', e);
+      }
+    }
+
     router.replace('/people');
   };
 
   return (
     <div className="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 px-4 py-10">
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">End-to-end encryption</h1>
+        <h1 className="text-2xl font-semibold">
+          {shouldMigrate ? 'Secure Your Data' : 'End-to-end encryption'}
+        </h1>
         <p className="text-sm text-gray-600 dark:text-gray-300">
-          Your data will be encrypted client-side. Only you can decrypt it. Write down your recovery phrase.
+          {shouldMigrate
+            ? 'Before we save your data to the cloud, let\'s set up encryption to keep it private.'
+            : 'Your data will be encrypted client-side. Only you can decrypt it. Write down your recovery phrase.'
+          }
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Generate your key</CardTitle>
+          <CardTitle>Generate your encryption key</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -87,7 +142,7 @@ export default function SetupPage() {
             </Button>
             {phraseToShow && (
               <Button variant="outline" onClick={handleContinue}>
-                Continue to app
+                {shouldMigrate ? 'Save & Continue' : 'Continue to app'}
               </Button>
             )}
           </div>

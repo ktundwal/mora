@@ -29,5 +29,9 @@
   },
   "volta": {
     "node": "20.18.0"
+  },
+  "dependencies": {
+    "@radix-ui/react-tabs": "^1.1.13",
+    "lucide-react": "^0.562.0"
   }
 }

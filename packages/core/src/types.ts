@@ -60,6 +60,7 @@ export interface UserProfile {
   recoveryPhraseHash?: string | null;
   keySalt?: string | null;
   encryptionEnabled?: boolean;
+  onboardingCompleted?: boolean; // Track if user completed initial onboarding
   createdAt: string;
   updatedAt: string;
   schemaVersion: number;
@@ -108,6 +109,48 @@ export type RelationshipType =
   | 'mother'
   | 'child'
   | 'other';
+
+/** Groups for 3x2 Relationship Grid */
+export const RELATIONSHIP_GROUPS = [
+  {
+    id: 'partner',
+    label: 'Partner',
+    icon: 'Heart',
+    types: ['spouse_wife', 'spouse_husband', 'partner', 'boyfriend', 'girlfriend'],
+  },
+  {
+    id: 'family',
+    label: 'Family',
+    icon: 'Home',
+    types: ['parent', 'father', 'mother', 'sibling', 'child'],
+  },
+  {
+    id: 'friend',
+    label: 'Friend',
+    icon: 'Smile',
+    types: ['friend', 'role_model'],
+  },
+  {
+    id: 'manager',
+    label: 'Manager',
+    icon: 'Building2',
+    types: ['manager', 'mentor'],
+  },
+  {
+    id: 'work_colleague',
+    label: 'Work Colleague',
+    icon: 'Briefcase',
+    types: ['coworker', 'peer', 'direct_report'],
+  },
+  {
+    id: 'other',
+    label: 'Other',
+    icon: 'Users',
+    types: ['other'],
+  },
+] as const;
+
+export type RelationshipGroupId = typeof RELATIONSHIP_GROUPS[number]['id'];
 
 export interface Person {
   id: string;
@@ -298,6 +341,16 @@ export interface GenerateDraftsRequest {
 
 export interface GenerateDraftsResponse {
   drafts: ReplyDraft[];
+}
+
+export interface GuestAnalysisRequest {
+  text: string;
+  fingerprint?: string; // Client-side fingerprint for simple rate limiting hint
+}
+
+export interface GuestAnalysisResponse {
+  analysis: string; // Lite analysis text
+  canSave: boolean;
 }
 
 // =============================================================================

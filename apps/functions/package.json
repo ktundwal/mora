@@ -12,13 +12,16 @@
     "typecheck": "tsc --noEmit"
   },
   "engines": {
-    "node": ">=18 <23"
+    "node": "22"
   },
   "main": "lib/index.js",
   "dependencies": {
+    "@genkit-ai/firebase": "^1.27.0",
+    "@genkit-ai/googleai": "^1.27.0",
     "@mora/core": "*",
     "firebase-admin": "^13.0.1",
     "firebase-functions": "^6.0.0",
+    "genkit": "^1.27.0",
     "jszip": "^3.10.1"
   },
   "devDependencies": {

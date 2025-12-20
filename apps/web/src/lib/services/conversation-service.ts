@@ -29,7 +29,7 @@ import type {
 } from '@mora/core';
 import { CURRENT_SCHEMA_VERSION, applyMapping, encryptFields, decryptFields } from '@mora/core';
 import type { FieldSpec } from '@mora/core';
-import { getActiveCryptoKey } from '../crypto/active-key';
+import { getActiveCryptoKey, hasActiveCryptoKey } from '../crypto/active-key';
 
 // ============================================================================
 // Types
@@ -71,7 +71,8 @@ export async function createConversation({
   personId,
 }: CreateConversationParams): Promise<string> {
   const db = getFirebaseDb();
-  const cryptoKey = getActiveCryptoKey();
+  const hasCryptoKey = hasActiveCryptoKey();
+  const cryptoKey = hasCryptoKey ? getActiveCryptoKey() : null;
 
   // Create conversation document FIRST (not in batch)
   // This is required because Firestore rules for sub-collections use get() 
@@ -93,10 +94,12 @@ export async function createConversation({
   };
 
   // Write conversation first so security rules can verify ownership
-  const encryptedConversation = await encryptFields(conversationData, conversationEncryptedFields, cryptoKey);
+  const dataToWrite = cryptoKey
+    ? await encryptFields(conversationData, conversationEncryptedFields, cryptoKey)
+    : conversationData;
 
   await setDoc(convRef, {
-    ...encryptedConversation,
+    ...dataToWrite,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
@@ -108,10 +111,10 @@ export async function createConversation({
   // Firestore batches are limited to 500 operations
   const messagesToWrite = await Promise.all(
     messages.slice(0, 500).map((message) =>
-      encryptFields(message, messageEncryptedFields, cryptoKey)
+      cryptoKey ? encryptFields(message, messageEncryptedFields, cryptoKey) : Promise.resolve(message)
     )
   );
-  
+
   if (messagesToWrite.length > 0) {
     const batch = writeBatch(db);
     for (const message of messagesToWrite) {
@@ -126,7 +129,7 @@ export async function createConversation({
     const remainingMessages = messages.slice(500);
     const encryptedRemaining = await Promise.all(
       remainingMessages.map((message) =>
-        encryptFields(message, messageEncryptedFields, cryptoKey)
+        cryptoKey ? encryptFields(message, messageEncryptedFields, cryptoKey) : Promise.resolve(message)
       )
     );
     const chunks = chunkArray(encryptedRemaining, 500);

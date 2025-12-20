@@ -16,9 +16,9 @@ import { defineSecret } from "firebase-functions/params";
 import { logger } from "firebase-functions/v2";
 
 // Import shared types from @mora/core
-import type { 
-  Conversation, 
-  GenerateUnpackRequest, 
+import type {
+  Conversation,
+  GenerateUnpackRequest,
   GenerateUnpackResponse,
   AiProxyRequest,
   AiProxyResponse,
@@ -43,8 +43,8 @@ export const healthCheck = onRequest(
   { cors: true },
   async (_request, response) => {
     logger.info("Health check called");
-    response.json({ 
-      status: "ok", 
+    response.json({
+      status: "ok",
       timestamp: new Date().toISOString(),
       version: "0.1.0"
     });
@@ -123,7 +123,7 @@ export const proxyChat = onCall<AiProxyRequest>({
 // =============================================================================
 
 export const generateUnpack = onCall<GenerateUnpackRequest>(
-  { 
+  {
     cors: true,
     enforceAppCheck: false, // Enable in production
   },
@@ -143,7 +143,7 @@ export const generateUnpack = onCall<GenerateUnpackRequest>(
     // Verify user owns this conversation
     const conversationRef = db.collection("conversations").doc(conversationId);
     const conversationSnap = await conversationRef.get();
-    
+
     if (!conversationSnap.exists) {
       throw new HttpsError("not-found", "Conversation not found.");
     }
@@ -164,6 +164,114 @@ export const generateUnpack = onCall<GenerateUnpackRequest>(
 );
 
 // =============================================================================
+// Genkit Configuration
+// =============================================================================
+import { genkit } from "genkit";
+import { googleAI, gemini15Flash } from "@genkit-ai/googleai";
+
+// Use Gemini 1.5 Flash for speed/cost (or 2.0 if available via string)
+// We rely on the standard GOOGLE_GENAI_API_KEY environment variable or secret.
+// For Firebase Functions, we should explicitly pass the API key if using secrets.
+const googleGenAiApiKey = defineSecret("GOOGLE_GENAI_API_KEY");
+
+const ai = genkit({
+  plugins: [googleAI()],
+  model: gemini15Flash, // Default model
+});
+
+// =============================================================================
+// Guest Analysis (Instant Value)
+// =============================================================================
+
+import type { GuestAnalysisRequest, GuestAnalysisResponse } from "@mora/core";
+
+export const analyzeGuest = onCall<GuestAnalysisRequest>(
+  {
+    cors: true,
+    enforceAppCheck: false,
+    secrets: [googleGenAiApiKey], // Request access to the secret
+  },
+  async (request): Promise<GuestAnalysisResponse> => {
+    // 1. Rate Limiting Strategy: Hash IP + User-Agent
+    const ip = request.rawRequest.ip || 'unknown';
+    const ua = request.rawRequest.headers['user-agent'] || 'unknown';
+    const fingerprint = request.data.fingerprint || Buffer.from(`${ip}-${ua}`).toString('base64');
+
+    const today = new Date().toISOString().split('T')[0];
+    const usageRef = db.collection('guest_usage').doc(`${today}_${fingerprint}`);
+
+    try {
+      await db.runTransaction(async (t) => {
+        const doc = await t.get(usageRef);
+        const count = doc.exists ? (doc.data()?.count || 0) : 0;
+
+        if (count >= 3) {
+          throw new HttpsError('resource-exhausted', 'Daily guest limit reached. Please sign in to continue.');
+        }
+
+        t.set(usageRef, {
+          count: count + 1,
+          lastUsed: new Date().toISOString(),
+          fingerprint
+        }, { merge: true });
+      });
+    } catch (error) {
+      if (error instanceof HttpsError) throw error;
+      logger.error("Rate limit check failed", { error });
+      throw new HttpsError('internal', 'Unable to verify limits');
+    }
+
+    // 2. Perform AI Analysis with Genkit
+    const text = request.data.text;
+    if (!text || text.length < 10) {
+      return { analysis: "Please share a bit more detail so I can help.", canSave: false };
+    }
+
+    // Set the API key explicitly for this request context if needed by the plugin
+    // The googleAI plugin typically looks for GOOGLE_GENAI_API_KEY env var.
+    // In Cloud Functions with defineSecret, it's available in process.env.GOOGLE_GENAI_API_KEY
+    // ONLY when 'secrets' is set in the options (done above).
+
+    try {
+      const prompt = `
+You are Mora, an empathetic and sharp relationship coach.
+Analyze the following user input (which might be a journal entry or a pasted chat).
+Provide a "Lite Analysis" in markdown format with exactly these 3 sections:
+1. **The Core Tension:** user's underlying feeling vs. the other person's likely perspective.
+2. **A Blind Spot:** something the user might be missing.
+3. **Draft Idea:** a specific, actionable phrasing to open a constructive dialogue.
+
+Keep it concise (under 200 words). Be empathetic but direct.
+Input:
+"${text.slice(0, 2000)}"
+`;
+
+      const result = await ai.generate({
+        prompt: prompt,
+        config: {
+          temperature: 0.7,
+        }
+      });
+
+      const analysis = result.text;
+
+      return {
+        analysis,
+        canSave: true
+      };
+
+    } catch (e: any) {
+      logger.error("AI Generation failed", e);
+      // Fallback for demo stability if API key fails
+      return {
+        analysis: "**[System]** Mora is temporarily offline (AI Provider Error). Please try again later or save your progress.",
+        canSave: true
+      };
+    }
+  }
+);
+
+// =============================================================================
 // Firestore Triggers
 // =============================================================================
 
@@ -177,10 +285,10 @@ export const onConversationCreated = onDocumentCreated(
     }
 
     const conversation = snapshot.data() as Conversation;
-    logger.info("New conversation created", { 
-      id: snapshot.id, 
+    logger.info("New conversation created", {
+      id: snapshot.id,
       uid: conversation.uid,
-      title: conversation.title 
+      title: conversation.title
     });
 
     // TODO: Trigger auto-summary generation

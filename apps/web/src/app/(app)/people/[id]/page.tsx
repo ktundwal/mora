@@ -3,19 +3,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
-import { ArrowLeft, PlusCircle, MessageSquare, Trash2, Sparkles, Reply } from 'lucide-react';
+import { ArrowLeft, PlusCircle, Trash2, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import type { Conversation, EntryWhy, EntryType, Person, RelationshipType } from '@mora/core';
+import type { Conversation, EntryWhy, Person, RelationshipType } from '@mora/core';
 import { getPerson } from '@/lib/services/person-service';
 import { getConversationsForPerson } from '@/lib/services/conversation-service';
 import {
@@ -70,14 +61,7 @@ export default function PersonDetailPage() {
   const entriesSelector = useMemo(() => selectEntriesForPerson(personId), [personId]);
   const entries = useEntryStore(entriesSelector);
   const entriesLoading = useEntryStore(selectEntriesLoading);
-  const { fetchEntriesForPerson, addEntry, deleteEntry } = useEntryStore();
-
-  const [entryType, setEntryType] = useState<EntryType>('interaction');
-  const [entryWhy, setEntryWhy] = useState<EntryWhy>('dont_know_how_to_respond');
-  const [whatTheySaid, setWhatTheySaid] = useState('');
-  const [whatISaid, setWhatISaid] = useState('');
-  const [content, setContent] = useState('');
-  const [isSavingEntry, setIsSavingEntry] = useState(false);
+  const { fetchEntriesForPerson, deleteEntry } = useEntryStore();
 
   const returnTo = useMemo(() => searchParams.get('returnTo') ?? '/people', [searchParams]);
 
@@ -117,31 +101,7 @@ export default function PersonDetailPage() {
     run();
   }, [personId, profile?.uid, fetchEntriesForPerson]);
 
-  const handleAddEntry = async () => {
-    setIsSavingEntry(true);
-    setError(null);
-    try {
-      await addEntry({
-        personId,
-        type: entryType,
-        why: entryWhy,
-        whatTheySaid: whatTheySaid.trim() ? whatTheySaid.trim() : null,
-        whatISaid: whatISaid.trim() ? whatISaid.trim() : null,
-        content: content.trim() ? content.trim() : null,
-      });
 
-      setWhatTheySaid('');
-      setWhatISaid('');
-      setContent('');
-      setEntryType('interaction');
-      setEntryWhy('dont_know_how_to_respond');
-    } catch (e) {
-      console.error(e);
-      setError(`Failed to save entry: ${getErrorMessage(e)}`);
-    } finally {
-      setIsSavingEntry(false);
-    }
-  };
 
   const handleDeletePerson = async () => {
     if (!confirm(`Delete ${person?.displayName ?? 'this person'}? Their entries will also be deleted.`)) {
@@ -218,188 +178,56 @@ export default function PersonDetailPage() {
             </div>
           )}
 
-          <Card>
-            <CardContent className="p-4">
-              <h2 className="font-medium">New entry</h2>
-              <p className="mt-1 text-sm text-zinc-500">
-                Capture what happened, in the moment.
-              </p>
-
-              <div className="mt-4 space-y-3">
-                <div className="space-y-2">
-                  <Label>Why are you logging this?</Label>
-                  <Select
-                    value={entryWhy}
-                    onValueChange={(v) => setEntryWhy(v as EntryWhy)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ENTRY_WHY_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Entry type</Label>
-                  <Select
-                    value={entryType}
-                    onValueChange={(v) => setEntryType(v as EntryType)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="interaction">Interaction</SelectItem>
-                      <SelectItem value="brain_dump">Brain dump</SelectItem>
-                      <SelectItem value="note">Note</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {entryType === 'interaction' ? (
-                  <>
-                    <div className="space-y-2">
-                      <Label htmlFor="they">What they said (optional)</Label>
-                      <Textarea
-                        id="they"
-                        value={whatTheySaid}
-                        onChange={(e) => setWhatTheySaid(e.target.value)}
-                        placeholder="Paste or summarize what they said…"
-                        className="min-h-[80px]"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="me">What I said (optional)</Label>
-                      <Textarea
-                        id="me"
-                        value={whatISaid}
-                        onChange={(e) => setWhatISaid(e.target.value)}
-                        placeholder="What did you say or do?"
-                        className="min-h-[80px]"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="ctx">Anything else (optional)</Label>
-                      <Textarea
-                        id="ctx"
-                        value={content}
-                        onChange={(e) => setContent(e.target.value)}
-                        placeholder="Context, what you think is really happening…"
-                        className="min-h-[80px]"
-                      />
-                    </div>
-                  </>
-                ) : (
-                  <div className="space-y-2">
-                    <Label htmlFor="content">Write it out</Label>
-                    <Textarea
-                      id="content"
-                      value={content}
-                      onChange={(e) => setContent(e.target.value)}
-                      placeholder="Dump thoughts, paste an email excerpt, paste a transcript…"
-                      className="min-h-[140px]"
-                    />
-                  </div>
-                )}
-
-                <Button
-                  className="w-full"
-                  onClick={handleAddEntry}
-                  disabled={isSavingEntry || (!content.trim() && !whatTheySaid.trim() && !whatISaid.trim())}
-                >
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  {isSavingEntry ? 'Saving…' : 'Save entry'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="font-medium">Entries</h2>
-                  <p className="text-sm text-zinc-500">Your recent logs for this person</p>
-                </div>
-              </div>
-
-              {entriesLoading && entries.length === 0 ? (
-                <div className="py-8 text-center text-sm text-zinc-500">Loading entries…</div>
-              ) : entries.length === 0 ? (
-                <div className="py-8 text-center text-sm text-zinc-500">No entries yet.</div>
-              ) : (
-                <div className="mt-3 space-y-2">
-                  {entries.map((e) => (
-                    <div key={e.id} className="rounded-lg border border-zinc-200 p-3 text-sm dark:border-zinc-800">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="font-medium">
+          {entriesLoading && entries.length === 0 ? (
+            <div className="py-12 text-center text-sm text-zinc-500">Loading entries…</div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+              {/* Entries Grid */}
+              {entries.map((e) => (
+                <Card key={e.id} className="relative group hover:shadow-sm transition-all dark:hover:bg-zinc-800/50">
+                  <CardContent className="flex h-full flex-col justify-between p-4">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="font-medium text-sm text-zinc-900 dark:text-zinc-100">
                           {ENTRY_WHY_OPTIONS.find((o) => o.value === e.why)?.label ?? e.why}
                         </div>
-                        <div className="flex items-center gap-2">
-                          <div className="text-xs text-zinc-400">{new Date(e.createdAt).toLocaleString()}</div>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteEntry(e.id)}
-                            className="p-1 text-zinc-400 hover:text-red-600 transition-colors"
-                            title="Delete entry"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="mt-2 space-y-2 text-zinc-700 dark:text-zinc-300">
-                        {e.whatTheySaid && (
-                          <div>
-                            <div className="text-xs font-medium text-zinc-500">They said</div>
-                            <div className="whitespace-pre-wrap">{e.whatTheySaid}</div>
-                          </div>
-                        )}
-                        {e.whatISaid && (
-                          <div>
-                            <div className="text-xs font-medium text-zinc-500">I said</div>
-                            <div className="whitespace-pre-wrap">{e.whatISaid}</div>
-                          </div>
-                        )}
-                        {e.content && (
-                          <div className="whitespace-pre-wrap">{e.content}</div>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteEntry(e.id)}
+                          className="opacity-0 group-hover:opacity-100 p-1 text-zinc-400 hover:text-red-600 transition-all"
+                          title="Delete entry"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
                       </div>
 
-                      {/* Unpack/Follow-up placeholders */}
-                      <div className="mt-3 flex gap-2 border-t border-zinc-100 pt-3 dark:border-zinc-800">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled
-                          className="flex-1 opacity-60"
-                          title="Coming soon"
-                        >
-                          <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-                          Unpack
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled
-                          className="flex-1 opacity-60"
-                          title="Coming soon"
-                        >
-                          <Reply className="mr-1.5 h-3.5 w-3.5" />
-                          Follow-up
-                        </Button>
+                      <div className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-4">
+                        {e.content || e.whatTheySaid || e.whatISaid || 'No content'}
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+
+                    <div className="mt-4 text-xs text-zinc-400">
+                      {new Date(e.createdAt).toLocaleDateString()}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+
+              {/* New Entry Card (Last) */}
+              <Link href={`/people/${personId}/new-entry`} className="block h-full">
+                <Card className="h-full border-dashed cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50 flex items-center justify-center min-h-[160px]">
+                  <CardContent className="flex flex-col items-center justify-center p-6 text-center">
+                    <div className="rounded-full bg-zinc-100 p-3 mb-3 dark:bg-zinc-800">
+                      <PlusCircle className="h-6 w-6 text-zinc-400" />
+                    </div>
+                    <span className="font-medium text-sm text-zinc-600 dark:text-zinc-400">New Entry</span>
+                  </CardContent>
+                </Card>
+              </Link>
+            </div>
+          )}
+
+          {/* Entries List Logic Moved to Grid Above - Removing old list */}
 
           <Card>
             <CardContent className="p-4">

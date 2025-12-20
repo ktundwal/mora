@@ -15,7 +15,7 @@ import {
   signOut as firebaseSignOut,
   type User,
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { getFirebaseAuth, getFirebaseDb } from './firebase';
 import { useUserStore } from './stores/user-store';
 import { isTestAuthEnabled, isTestEnvironment } from './test-auth';
@@ -43,10 +43,13 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+import { useClientPreferences } from './stores/client-preferences';
+
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const { setProfile, clearProfile } = useUserStore();
+  const { setHasAuthenticatedBefore } = useClientPreferences();
 
   useEffect(() => {
     let unsubscribe: (() => void) | null = null;
@@ -71,9 +74,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUser(firebaseUser);
 
         if (firebaseUser) {
+          setHasAuthenticatedBefore(true);
           try {
-            // Optimistic local profile so the app can function immediately (uid-scoped).
-            // Firestore remains the source of truth; we overwrite if fetch/create succeeds.
+            // Optimistic local profile
             const now = new Date().toISOString();
             const fallbackProfile: UserProfile = {
               uid: firebaseUser.uid,
@@ -89,17 +92,88 @@ export function AuthProvider({ children }: AuthProviderProps) {
               recoveryPhraseHash: null,
               keySalt: null,
               encryptionEnabled: false,
+              onboardingCompleted: false,
               createdAt: now,
               updatedAt: now,
               schemaVersion: CURRENT_SCHEMA_VERSION,
             };
 
             setProfile(fallbackProfile);
-
             const profile = await getOrCreateUserProfile(firebaseUser);
             setProfile(profile);
+
+            // MIGRATION: Check for guest data and migrate if present
+            // We import dynamically to avoid circular dependencies if any
+            const { useGuestStore } = await import('./stores/guest-store');
+            const { createPerson } = await import('./services/person-service');
+            const { hasActiveCryptoKey } = await import('./crypto/active-key');
+            const guestStore = useGuestStore.getState();
+
+            if (guestStore.hasGuestData() && !firebaseUser.isAnonymous) {
+              console.log('[Migration] Guest data detected');
+
+              // Check if encryption is set up
+              if (!hasActiveCryptoKey()) {
+                console.log('[Migration] No encryption key found');
+
+                // Set loading to false so AuthGuard doesn't block the setup page
+                setLoading(false);
+
+                // Only redirect if we're not already on the setup page
+                if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/setup')) {
+                  console.log('[Migration] Redirecting to setup');
+                  window.location.href = '/setup?migrate=true';
+                  return;
+                }
+
+                // If we're already on setup, don't redirect - let the page handle it
+                console.log('[Migration] Already on setup page, waiting for encryption setup');
+                return;
+              }
+
+              console.log('[Migration] Encryption key found, proceeding with migration');
+              const { guestPerson, guestContext, userDisplayName } = guestStore;
+
+              let personId: string | null = null;
+
+              // 1. Create Person (encrypted)
+              if (guestPerson) {
+                try {
+                  personId = await createPerson({
+                    uid: firebaseUser.uid,
+                    displayName: guestPerson.displayName,
+                    relationshipType: guestPerson.relationshipType as any,
+                    importanceNote: guestContext?.importanceNote || null,
+                  });
+                  console.log('[Migration] Successfully migrated person:', personId);
+                } catch (e) {
+                  console.error('[Migration] Failed to migrate person:', e);
+                }
+              }
+
+              // Note: We skip creating a conversation during onboarding migration
+              // because we don't have actual parsed messages yet.
+              // The user can create their first conversation from the dashboard.
+
+              // Mark onboarding as complete
+              try {
+                const db = getFirebaseDb();
+                const userRef = doc(db, 'users', firebaseUser.uid);
+                await updateDoc(userRef, {
+                  onboardingCompleted: true,
+                  updatedAt: serverTimestamp(),
+                });
+                console.log('[Migration] Marked onboarding as complete');
+              } catch (e) {
+                console.error('[Migration] Failed to update onboarding status:', e);
+              }
+
+              guestStore.clearGuestData();
+              console.log('[Migration] Guest data migration complete');
+            }
+
           } catch (error) {
-            console.error('Failed to get/create user profile:', error);
+            console.error('Failed to get/create user profile or migrate data:', error);
           }
         } else {
           clearProfile();
@@ -195,6 +269,7 @@ async function getOrCreateUserProfile(user: User): Promise<UserProfile> {
     recoveryPhraseHash: null,
     keySalt: null,
     encryptionEnabled: false,
+    onboardingCompleted: false,
     createdAt: now,
     updatedAt: now,
     schemaVersion: CURRENT_SCHEMA_VERSION,

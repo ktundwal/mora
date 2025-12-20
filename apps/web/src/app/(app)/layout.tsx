@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { MessageCircle, PlusCircle, BookOpen, Settings, Users } from 'lucide-react';
 import { AuthGuard } from '@/lib/auth-guard';
 import { CryptoGuard } from '@/lib/crypto/crypto-guard';
+import { OnboardingGuard } from '@/components/auth/onboarding-guard';
 import { cn } from '@/lib/utils';
 
 interface AppLayoutProps {
@@ -30,13 +31,15 @@ export default function AppLayout({ children }: AppLayoutProps) {
   return (
     <AuthGuard>
       <CryptoGuard>
-        <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-zinc-950">
-          {/* Main content area */}
-          <main className="flex-1 pb-16">{children}</main>
+        <OnboardingGuard>
+          <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-zinc-950">
+            {/* Main content area */}
+            <main className="flex-1 pb-16">{children}</main>
 
-          {/* Bottom navigation */}
-          <BottomNav />
-        </div>
+            {/* Bottom navigation */}
+            <BottomNav />
+          </div>
+        </OnboardingGuard>
       </CryptoGuard>
     </AuthGuard>
   );
