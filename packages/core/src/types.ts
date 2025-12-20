@@ -1,5 +1,6 @@
 // Shared types for Mora
 // All Firestore documents should include schemaVersion for migrations
+// Updated for RelationshipType additions
 
 /** Current schema version - increment when making breaking changes */
 export const CURRENT_SCHEMA_VERSION = 2;
@@ -105,9 +106,14 @@ export type RelationshipType =
   | 'spouse_wife'
   | 'spouse_husband'
   | 'partner'
+  | 'boyfriend'
+  | 'girlfriend'
+  | 'parent'
   | 'father'
   | 'mother'
+  | 'sibling'
   | 'child'
+  | 'coworker'
   | 'other';
 
 /** Groups for 3x2 Relationship Grid */
