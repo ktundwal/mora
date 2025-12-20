@@ -37,6 +37,7 @@ interface TestAuthMethods {
     enabled: boolean;
     useEmulators: boolean;
   };
+  user?: { uid: string; email: string | null };
 }
 
 const testAuthMethods: TestAuthMethods = {
@@ -47,6 +48,22 @@ const testAuthMethods: TestAuthMethods = {
     useEmulators: process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === 'true',
   }),
 };
+
+/**
+ * Update the current user in test auth methods
+ */
+export function updateTestAuthUser(user: { uid: string; email: string | null } | null): void {
+  if (typeof window === 'undefined') return;
+  if (!isTestEnvironment()) return;
+
+  if (window.__testAuth) {
+    if (user) {
+      window.__testAuth.user = user;
+    } else {
+      delete window.__testAuth.user;
+    }
+  }
+}
 
 // Type declaration for window
 declare global {

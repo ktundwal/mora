@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { Lock, Sparkles, Loader2, AlertCircle } from 'lucide-react';
+import { Sparkles, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useAuth } from '@/lib/auth-context';
@@ -14,7 +13,7 @@ import Markdown from 'react-markdown';
 
 export default function OnboardingPreviewPage() {
     const { signInWithGoogle, user } = useAuth();
-    const { guestContext, guestPerson } = useGuestStore();
+    const { guestContext } = useGuestStore();
     const [isSigningIn, setIsSigningIn] = useState(false);
 
     // Note: We don't redirect here anymore. The auth-context will handle

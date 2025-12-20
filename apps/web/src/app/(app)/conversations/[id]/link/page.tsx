@@ -28,9 +28,14 @@ const RELATIONSHIP_LABELS: Record<RelationshipType, string> = {
   spouse_wife: 'Wife',
   spouse_husband: 'Husband',
   partner: 'Partner',
+  boyfriend: 'Boyfriend',
+  girlfriend: 'Girlfriend',
+  parent: 'Parent',
   father: 'Father',
   mother: 'Mother',
+  sibling: 'Sibling',
   child: 'Child',
+  coworker: 'Coworker',
   other: 'Other',
 };
 

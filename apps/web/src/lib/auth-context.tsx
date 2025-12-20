@@ -18,7 +18,7 @@ import {
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { getFirebaseAuth, getFirebaseDb } from './firebase';
 import { useUserStore } from './stores/user-store';
-import { isTestAuthEnabled, isTestEnvironment } from './test-auth';
+import { isTestAuthEnabled, isTestEnvironment, updateTestAuthUser } from './test-auth';
 import type { UserProfile } from '@mora/core';
 import { CURRENT_SCHEMA_VERSION } from '@mora/core';
 
@@ -72,6 +72,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
         setUser(firebaseUser);
+        updateTestAuthUser(firebaseUser);
 
         if (firebaseUser) {
           setHasAuthenticatedBefore(true);
@@ -132,7 +133,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
               }
 
               console.log('[Migration] Encryption key found, proceeding with migration');
-              const { guestPerson, guestContext, userDisplayName } = guestStore;
+              const { guestPerson, guestContext } = guestStore;
 
               let personId: string | null = null;
 

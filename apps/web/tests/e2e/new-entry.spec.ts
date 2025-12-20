@@ -29,7 +29,7 @@ async function ensureEncryptionKey(page: import('@playwright/test').Page, uid: s
         const raw = new Uint8Array(await crypto.subtle.exportKey('raw', key));
         const base64 = btoa(String.fromCharCode(...raw));
 
-        await new Promise<void>((resolve, reject) => {
+        await new Promise<void>((resolve) => {
             const request = indexedDB.open('mora-crypto', 1);
             request.onupgradeneeded = () => {
                 const db = request.result;

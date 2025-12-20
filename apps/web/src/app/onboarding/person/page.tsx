@@ -25,7 +25,7 @@ export default function OnboardingPersonPage() {
             setMode(guestPerson.relationshipType ? 'input_details' : 'select_relationship');
             setName(guestPerson.displayName || '');
             if (guestPerson.relationshipType) {
-                const group = RELATIONSHIP_GROUPS.find(g => g.types.includes(guestPerson.relationshipType));
+                const group = RELATIONSHIP_GROUPS.find(g => (g.types as readonly string[]).includes(guestPerson.relationshipType!));
                 if (group) setSelectedGroup(group);
             }
         }
