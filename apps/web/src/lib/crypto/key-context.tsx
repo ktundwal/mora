@@ -1,7 +1,7 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { doc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { createContext, useContext, useEffect, useState, useRef, type ReactNode } from 'react';
+import { doc, serverTimestamp, updateDoc, getDoc } from 'firebase/firestore';
 import { getFirebaseDb } from '../firebase';
 import { useAuth } from '../auth-context';
 import { setActiveCryptoKey } from './active-key';
@@ -24,10 +24,13 @@ interface CryptoContextValue {
   status: 'loading' | 'missing' | 'locked' | 'ready';
   masterKey: CryptoKey | null;
   recoveryPhrase: string[] | null;
+  hasPassphrase: boolean;
   generateAndStoreKey: (passphrase?: string) => Promise<string[]>;
   recoverWithPhrase: (phrase: string[], passphrase?: string) => Promise<void>;
   unlockWithPassphrase: (passphrase: string) => Promise<void>;
+  updateDevicePassphrase: (passphrase?: string) => Promise<void>;
   clearLocalKey: () => Promise<void>;
+  revealRecoveryPhrase: () => Promise<string[]>;
 }
 
 const CryptoContext = createContext<CryptoContextValue | null>(null);
@@ -134,18 +137,34 @@ export function CryptoProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<CryptoContextValue['status']>('loading');
   const [masterKey, setMasterKey] = useState<CryptoKey | null>(null);
   const [recoveryPhrase, setRecoveryPhrase] = useState<string[] | null>(null);
+  const [hasPassphrase, setHasPassphrase] = useState(false);
+  const loadedUidRef = useRef<string | null>(null);
+
+  // Helper to expose phrase if key is loaded
+  const revealRecoveryPhrase = async (): Promise<string[]> => {
+    if (!masterKey) throw new Error('Key not loaded');
+    return masterKeyToRecoveryPhrase(masterKey);
+  };
 
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
+      loadedUidRef.current = null;
       setMasterKey(null);
       setRecoveryPhrase(null);
+      setHasPassphrase(false);
       setActiveCryptoKey(null);
       setStatus('missing');
       return;
     }
 
+    // If we already loaded for this user, don't re-run logic that might lock the session
+    if (loadedUidRef.current === user.uid) {
+      return;
+    }
+
     const load = async () => {
+      loadedUidRef.current = user.uid;
       setStatus('loading');
       try {
         const record = await getDeviceKey(user.uid);
@@ -153,8 +172,11 @@ export function CryptoProvider({ children }: { children: ReactNode }) {
           setStatus('missing');
           setActiveCryptoKey(null);
           setMasterKey(null);
+          setHasPassphrase(false);
           return;
         }
+
+        setHasPassphrase(record.passphraseRequired);
 
         if (record.passphraseRequired) {
           setStatus('locked');
@@ -178,6 +200,16 @@ export function CryptoProvider({ children }: { children: ReactNode }) {
 
   const generateAndStoreKey = async (passphrase?: string): Promise<string[]> => {
     if (!user) throw new Error('Not authenticated');
+
+    // SAFETY CHECK: Prevent overwriting existing keys
+    const db = getFirebaseDb();
+    const userRef = doc(db, 'users', user.uid);
+    const userSnap = await getDoc(userRef);
+    
+    if (userSnap.exists() && userSnap.data().encryptionEnabled) {
+      throw new Error('Encryption is already enabled for this account. Please unlock your vault instead of generating a new key.');
+    }
+
     const key = await generateMasterKey();
     const phrase = await masterKeyToRecoveryPhrase(key);
     const record = await createDeviceRecord(user.uid, key, passphrase);
@@ -187,6 +219,7 @@ export function CryptoProvider({ children }: { children: ReactNode }) {
 
     setMasterKey(key);
     setRecoveryPhrase(phrase);
+    setHasPassphrase(!!passphrase);
     setActiveCryptoKey(key);
     setStatus('ready');
     return phrase;
@@ -194,14 +227,35 @@ export function CryptoProvider({ children }: { children: ReactNode }) {
 
   const recoverWithPhrase = async (phrase: string[], passphrase?: string): Promise<void> => {
     if (!user) throw new Error('Not authenticated');
+
+    // SAFETY CHECK: Verify phrase against stored hash to prevent locking out data
+    const db = getFirebaseDb();
+    const userRef = doc(db, 'users', user.uid);
+    const userSnap = await getDoc(userRef);
+    
+    if (userSnap.exists()) {
+      const data = userSnap.data();
+      if (data.encryptionEnabled && data.recoveryPhraseHash) {
+        const inputHash = await hashSha256(phrase.join(' '));
+        if (inputHash !== data.recoveryPhraseHash) {
+          // TODO: In the future, we might want to allow "force recover" if the user is sure,
+          // but for now, this protects against accidental key mismatch.
+          throw new Error('Recovery phrase does not match the one used to encrypt your data.');
+        }
+      }
+    }
+
     const key = await recoveryPhraseToMasterKey(phrase);
     const record = await createDeviceRecord(user.uid, key, passphrase);
 
     await saveDeviceKey(record);
+    // Only update metadata if it's missing or we are sure (which we are, due to check above)
+    // Actually, if the hash matches, we don't strictly need to update it, but updating salt/version is fine.
     await updateUserKeyMetadata(user.uid, phrase, passphrase ? fromBase64(record.passphraseSalt) : generateRandomBytes(16));
 
     setMasterKey(key);
     setActiveCryptoKey(key);
+    setHasPassphrase(!!passphrase);
     setStatus(record.passphraseRequired ? 'locked' : 'ready');
   };
 
@@ -217,11 +271,20 @@ export function CryptoProvider({ children }: { children: ReactNode }) {
     setStatus('ready');
   };
 
+  const updateDevicePassphrase = async (passphrase?: string): Promise<void> => {
+    if (!user || !masterKey) throw new Error('Key not loaded');
+    
+    const record = await createDeviceRecord(user.uid, masterKey, passphrase);
+    await saveDeviceKey(record);
+    setHasPassphrase(!!passphrase);
+  };
+
   const clearLocalKey = async (): Promise<void> => {
     if (!user) return;
     await deleteDeviceKey(user.uid);
     setMasterKey(null);
     setActiveCryptoKey(null);
+    setHasPassphrase(false);
     setStatus('missing');
   };
 
@@ -229,10 +292,13 @@ export function CryptoProvider({ children }: { children: ReactNode }) {
     status,
     masterKey,
     recoveryPhrase,
+    hasPassphrase,
     generateAndStoreKey,
     recoverWithPhrase,
     unlockWithPassphrase,
+    updateDevicePassphrase,
     clearLocalKey,
+    revealRecoveryPhrase,
   };
 
   return <CryptoContext.Provider value={value}>{children}</CryptoContext.Provider>;

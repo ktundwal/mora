@@ -1,19 +1,14 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { ArrowLeft, PlusCircle, Trash2, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import type { Conversation, EntryWhy, Person, RelationshipType } from '@mora/core';
+import type { Conversation, Person, RelationshipType } from '@mora/core';
 import { getPerson } from '@/lib/services/person-service';
 import { getConversationsForPerson } from '@/lib/services/conversation-service';
-import {
-  useEntryStore,
-  selectEntriesForPerson,
-  selectEntriesLoading,
-} from '@/lib/stores/entry-store';
 import { usePersonStore } from '@/lib/stores/person-store';
 import { useUserStore } from '@/lib/stores/user-store';
 
@@ -39,15 +34,6 @@ const RELATIONSHIP_LABELS: Record<RelationshipType, string> = {
   other: 'Other',
 };
 
-const ENTRY_WHY_OPTIONS: Array<{ value: EntryWhy; label: string }> = [
-  { value: 'dont_know_how_to_respond', label: "I don't know how to respond" },
-  { value: 'feeling_activated', label: 'I feel activated/anxious' },
-  { value: 'i_think_i_hurt_them', label: 'I think I hurt them' },
-  { value: 'need_to_set_boundary', label: 'I need to set a boundary' },
-  { value: 'trying_to_repair', label: "I'm trying to repair" },
-  { value: 'saving_for_later', label: 'Just saving for later' },
-];
-
 export default function PersonDetailPage() {
   const params = useParams<{ id: string }>();
   const searchParams = useSearchParams();
@@ -62,11 +48,6 @@ export default function PersonDetailPage() {
   const [isLoadingPerson, setIsLoadingPerson] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isDeletingPerson, setIsDeletingPerson] = useState(false);
-
-  const entriesSelector = useMemo(() => selectEntriesForPerson(personId), [personId]);
-  const entries = useEntryStore(entriesSelector);
-  const entriesLoading = useEntryStore(selectEntriesLoading);
-  const { fetchEntriesForPerson, deleteEntry } = useEntryStore();
 
   const returnTo = useMemo(() => searchParams.get('returnTo') ?? '/people', [searchParams]);
 
@@ -93,8 +74,6 @@ export default function PersonDetailPage() {
 
         const convs = await getConversationsForPerson(profile.uid, personId);
         setConversations(convs);
-
-        await fetchEntriesForPerson(personId);
       } catch (e) {
         console.error(e);
         setError(`Failed to load person: ${getErrorMessage(e)}`);
@@ -104,7 +83,7 @@ export default function PersonDetailPage() {
     };
 
     run();
-  }, [personId, profile?.uid, fetchEntriesForPerson]);
+  }, [personId, profile?.uid]);
 
 
 
@@ -125,17 +104,6 @@ export default function PersonDetailPage() {
     }
   };
 
-  const handleDeleteEntry = async (entryId: string) => {
-    if (!confirm('Delete this entry?')) return;
-
-    try {
-      await deleteEntry(personId, entryId);
-    } catch (e) {
-      console.error(e);
-      setError(`Failed to delete entry: ${getErrorMessage(e)}`);
-    }
-  };
-
   if (isLoadingPerson && !person) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -149,7 +117,7 @@ export default function PersonDetailPage() {
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-40 border-b border-zinc-200 bg-white px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900">
+      <header className="sticky top-0 z-40 border-b border-zinc-200 bg-white px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900 md:static md:border-b-0 md:bg-transparent md:pt-8 md:pb-4">
         <div className="mx-auto flex max-w-2xl items-center gap-4">
           <Button variant="ghost" size="icon" asChild>
             <Link href={returnTo}>
@@ -183,97 +151,42 @@ export default function PersonDetailPage() {
             </div>
           )}
 
-          {entriesLoading && entries.length === 0 ? (
-            <div className="py-12 text-center text-sm text-zinc-500">Loading entries…</div>
-          ) : (
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-              {/* Entries Grid */}
-              {entries.map((e) => (
-                <Card key={e.id} className="relative group hover:shadow-sm transition-all dark:hover:bg-zinc-800/50">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {conversations.map((c) => (
+              <Link key={c.id} href={`/conversations/${c.id}`} className="block">
+                <Card className="relative group hover:shadow-sm transition-all dark:hover:bg-zinc-800/50 h-full">
                   <CardContent className="flex h-full flex-col justify-between p-4">
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <div className="font-medium text-sm text-zinc-900 dark:text-zinc-100">
-                          {ENTRY_WHY_OPTIONS.find((o) => o.value === e.why)?.label ?? e.why}
+                        <div className="font-medium text-sm text-zinc-900 dark:text-zinc-100 truncate pr-4">
+                          {c.title || 'Untitled Conversation'}
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteEntry(e.id)}
-                          className="opacity-0 group-hover:opacity-100 p-1 text-zinc-400 hover:text-red-600 transition-all"
-                          title="Delete entry"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
+                        <MessageSquare className="h-4 w-4 text-zinc-400" />
                       </div>
-
-                      <div className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-4">
-                        {e.content || e.whatTheySaid || e.whatISaid || 'No content'}
+                      <div className="text-xs text-zinc-500 line-clamp-3">
+                        {c.summary || 'No summary available.'}
                       </div>
                     </div>
-
                     <div className="mt-4 text-xs text-zinc-400">
-                      {new Date(e.createdAt).toLocaleDateString()}
+                      {new Date(c.createdAt).toLocaleDateString()}
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-
-              {/* New Entry Card (Last) */}
-              <Link href={`/people/${personId}/new-entry`} className="block h-full">
-                <Card className="h-full border-dashed cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50 flex items-center justify-center min-h-[160px]">
-                  <CardContent className="flex flex-col items-center justify-center p-6 text-center">
-                    <div className="rounded-full bg-zinc-100 p-3 mb-3 dark:bg-zinc-800">
-                      <PlusCircle className="h-6 w-6 text-zinc-400" />
-                    </div>
-                    <span className="font-medium text-sm text-zinc-600 dark:text-zinc-400">New Entry</span>
                   </CardContent>
                 </Card>
               </Link>
-            </div>
-          )}
+            ))}
 
-          {/* Entries List Logic Moved to Grid Above - Removing old list */}
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="font-medium">Linked chats</h2>
-                  <p className="text-sm text-zinc-500">Chats you imported for this person</p>
-                </div>
-                <Button asChild variant="outline" size="sm">
-                  <Link href={`/new?personId=${personId}&returnTo=${encodeURIComponent(`/people/${personId}`)}`}>
-                    Import chat
-                  </Link>
-                </Button>
-              </div>
-
-              {conversations.length === 0 ? (
-                <div className="py-8 text-center text-sm text-zinc-500">
-                  No linked chats yet.
-                </div>
-              ) : (
-                <div className="mt-3 space-y-2">
-                  {conversations.map((c) => (
-                    <Link key={c.id} href={`/conversations/${c.id}`}>
-                      <div className="flex items-center justify-between rounded-lg border border-zinc-200 p-3 text-sm transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50">
-                        <div className="min-w-0">
-                          <div className="font-medium truncate">{c.title}</div>
-                          <div className="mt-1 flex items-center gap-2 text-xs text-zinc-400">
-                            <span className="flex items-center gap-1">
-                              <MessageSquare className="h-3 w-3" />
-                              {c.messageCount} messages
-                            </span>
-                          </div>
-                        </div>
-                        <div className="text-xs text-zinc-400">{new Date(c.createdAt).toLocaleDateString()}</div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+            {/* New Entry Card (Last) */}
+            <Link href={`/people/${personId}/new-entry`} className="block h-full">
+              <Card className="h-full border-dashed cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50 flex items-center justify-center min-h-[160px]">
+                <CardContent className="flex flex-col items-center justify-center p-6 text-center">
+                  <div className="rounded-full bg-zinc-100 p-3 mb-3 dark:bg-zinc-800">
+                    <PlusCircle className="h-6 w-6 text-zinc-400" />
+                  </div>
+                  <span className="font-medium text-sm text-zinc-600 dark:text-zinc-400">New Entry</span>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
         </div>
       </div>
     </div>

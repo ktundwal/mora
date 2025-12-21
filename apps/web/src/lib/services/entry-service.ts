@@ -73,36 +73,34 @@ export async function getEntriesForPerson(
   maxResults = 50
 ): Promise<Entry[]> {
   const db = getFirebaseDb();
-  // Safe check inside the loop instead
-  const q = query(
-    collection(db, 'people', personId, 'entries'),
-    orderBy('createdAt', 'desc'),
-    limit(maxResults)
-  );
+  const ref = collection(db, 'people', personId, 'entries');
+  const q = query(ref, orderBy('createdAt', 'desc'), limit(maxResults));
 
   const snapshot = await getDocs(q);
-  const entries = await Promise.all(
-    snapshot.docs.map(async (snap) => {
-      const data = snap.data();
-      let decrypted: any = { id: snap.id, ...data };
+  const cryptoKey = hasActiveCryptoKey() ? getActiveCryptoKey() : null;
 
-      if (hasActiveCryptoKey()) {
+  const entries = await Promise.all(
+    snapshot.docs.map(async (docSnap) => {
+      const data = docSnap.data();
+      let decrypted = { id: docSnap.id, ...data } as unknown as Omit<Entry, 'id'>;
+
+      if (cryptoKey) {
         try {
-          const cryptoKey = getActiveCryptoKey();
-          decrypted = await decryptFields<Entry>(
-            { id: snap.id, ...data } as Entry,
-            entryEncryptedFields as FieldSpec<Entry>[],
+          decrypted = await decryptFields(
+            decrypted,
+            entryEncryptedFields,
             cryptoKey
           );
         } catch (e) {
-          console.error(`Failed to decrypt entry ${snap.id}`, e);
+          console.error(`Failed to decrypt entry ${docSnap.id}`, e);
         }
       }
+
       return sanitizeEntry({
         ...decrypted,
         createdAt: toISOString(data.createdAt),
         updatedAt: toISOString(data.updatedAt),
-      } as Entry);
+      });
     })
   );
 
@@ -110,16 +108,17 @@ export async function getEntriesForPerson(
 }
 
 // Helper to ensure we never return raw encrypted objects (which crash React)
-function sanitizeEntry(e: any): Entry {
+function sanitizeEntry(e: Record<string, unknown>): Entry {
   const sanitized = { ...e };
   const stringFields = ['whatTheySaid', 'whatISaid', 'content'];
 
   for (const field of stringFields) {
-    if (sanitized[field] && typeof sanitized[field] === 'object' && 'ct' in sanitized[field]) {
+    const val = sanitized[field];
+    if (val && typeof val === 'object' && 'ct' in val) {
       sanitized[field] = '[Locked content]';
     }
   }
-  return sanitized as Entry;
+  return sanitized as unknown as Entry;
 }
 
 function toISOString(value: Timestamp | string | undefined): string {

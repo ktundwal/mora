@@ -15,7 +15,7 @@ import {
   signOut as firebaseSignOut,
   type User,
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp, Timestamp, collection, query, where, limit, getDocs } from 'firebase/firestore';
 import { getFirebaseAuth, getFirebaseDb } from './firebase';
 import { useUserStore } from './stores/user-store';
 import { isTestAuthEnabled, isTestEnvironment, updateTestAuthUser } from './test-auth';
@@ -122,6 +122,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
                 // Only redirect if we're not already on the setup page
                 if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/setup')) {
+                  if (profile.encryptionEnabled) {
+                    console.log('[Migration] Encryption enabled but locked. Redirecting to unlock.');
+                    window.location.href = '/unlock';
+                    return;
+                  }
                   console.log('[Migration] Redirecting to setup');
                   window.location.href = '/setup?migrate=true';
                   return;
@@ -245,6 +250,7 @@ async function getOrCreateUserProfile(user: User): Promise<UserProfile> {
 
   if (userSnap.exists()) {
     const data = userSnap.data();
+    console.log('[Auth] Found existing user profile:', data);
     // Convert Firestore Timestamps to ISO strings
     return {
       ...data,
@@ -255,6 +261,23 @@ async function getOrCreateUserProfile(user: User): Promise<UserProfile> {
   }
 
   // Create new user profile
+  console.log('[Auth] Creating NEW user profile for:', user.uid);
+
+  // Check if user has existing data (people) to avoid forcing onboarding on returning users
+  // whose profile doc might be missing/deleted.
+  let hasExistingData = false;
+  try {
+    const peopleRef = collection(db, 'people');
+    const q = query(peopleRef, where('uid', '==', user.uid), limit(1));
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      console.log('[Auth] Found existing people data for user, skipping onboarding');
+      hasExistingData = true;
+    }
+  } catch (e) {
+    console.error('[Auth] Failed to check for existing data:', e);
+  }
+
   const now = new Date().toISOString();
   const newProfile: UserProfile = {
     uid: user.uid,
@@ -270,7 +293,7 @@ async function getOrCreateUserProfile(user: User): Promise<UserProfile> {
     recoveryPhraseHash: null,
     keySalt: null,
     encryptionEnabled: false,
-    onboardingCompleted: false,
+    onboardingCompleted: hasExistingData,
     createdAt: now,
     updatedAt: now,
     schemaVersion: CURRENT_SCHEMA_VERSION,

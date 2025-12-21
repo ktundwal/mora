@@ -48,5 +48,11 @@ export function CryptoGuard({ children }: CryptoGuardProps) {
     );
   }
 
-  return <>{children}</>;
+  if (status === 'ready') {
+    return <>{children}</>;
+  }
+
+  // If not ready (locked/missing) and not allowed path, don't render children.
+  // The useEffect will handle the redirect.
+  return null;
 }

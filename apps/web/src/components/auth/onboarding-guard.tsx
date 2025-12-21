@@ -20,6 +20,7 @@ export function OnboardingGuard({ children }: OnboardingGuardProps) {
     useEffect(() => {
         // If authenticated (profile exists) but onboarding not completed
         if (profile && profile.onboardingCompleted === false && !isAllowedPath) {
+            console.log('[OnboardingGuard] Redirecting to onboarding. Profile:', profile);
             // Redirect to onboarding start
             router.replace('/onboarding');
         }

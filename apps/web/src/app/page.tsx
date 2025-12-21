@@ -37,7 +37,7 @@ export default function Home() {
 
   const handleStartUnpacking = () => {
     if (hasAuthenticatedBefore) {
-      signInWithGoogle();
+      router.push('/login');
     } else {
       setOnboardingState('started');
       router.push('/onboarding');

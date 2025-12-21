@@ -1,5 +1,12 @@
 # Next Steps
 
+## Priority 0: Fit and Finish (SPEC-005)
+- [x] **Auth:** Replace Google popup with FirebaseUI.
+- [x] **Nav:** Add global header, simplify footer, fix redirects.
+- [x] **UX:** Remove "Linked chats", update "New Entry" button text.
+- [x] **Fix:** Resolve passphrase prompt on save.
+- [x] **Test:** Create comprehensive E2E UX test spec and implementation.
+
 ## Priority 1: Connect Real AI Backend
 - [ ] **Infrastructure:** Deploy `apps/functions` to Firebase.
 - [ ] **AI Integration:** Update `analyzeGuest` in `apps/functions/src/index.ts` to call OpenAI/Anthropic using the `AiProxy` logic.

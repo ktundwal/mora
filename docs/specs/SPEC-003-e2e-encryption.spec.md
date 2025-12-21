@@ -43,7 +43,7 @@
 |----|-------------|
 | **REQ-E2E-001** | On first sign-in, system generates a 256-bit master key |
 | **REQ-E2E-002** | System displays 24-word recovery phrase derived from master key |
-| **REQ-E2E-003** | User must confirm recovery phrase by entering 3 random words |
+| **REQ-E2E-003** | (Deferred) User must confirm recovery phrase by entering 3 random words |
 | **REQ-E2E-004** | Master key is stored in IndexedDB (browser) encrypted with optional device passphrase |
 | **REQ-E2E-005** | User can recover access on new device by entering 24-word phrase |
 | **REQ-E2E-006** | All sensitive content fields are encrypted before Firestore write |

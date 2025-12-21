@@ -1,12 +1,13 @@
 'use client';
 
-import { type ReactNode } from 'react';
+import React, { type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { MessageCircle, PlusCircle, BookOpen, Settings, Users } from 'lucide-react';
+import { Settings, Users, type LucideIcon } from 'lucide-react';
 import { AuthGuard } from '@/lib/auth-guard';
 import { CryptoGuard } from '@/lib/crypto/crypto-guard';
 import { OnboardingGuard } from '@/components/auth/onboarding-guard';
+import { Header } from '@/components/header';
 import { cn } from '@/lib/utils';
 
 interface AppLayoutProps {
@@ -16,14 +17,11 @@ interface AppLayoutProps {
 interface NavItem {
   href: string;
   label: string;
-  icon: typeof MessageCircle;
+  icon: LucideIcon;
 }
 
 const navItems: NavItem[] = [
-  { href: '/conversations', label: 'Chats', icon: MessageCircle },
   { href: '/people', label: 'People', icon: Users },
-  { href: '/new', label: 'New', icon: PlusCircle },
-  { href: '/playbook', label: 'Playbook', icon: BookOpen },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
@@ -33,11 +31,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
       <CryptoGuard>
         <OnboardingGuard>
           <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-zinc-950">
+            <Header />
             {/* Main content area */}
-            <main className="flex-1 pb-16">{children}</main>
+            <main className="flex-1 pb-16 md:pb-0">{children}</main>
 
-            {/* Bottom navigation */}
-            <BottomNav />
+            {/* Bottom navigation - Mobile Only */}
+            <div className="md:hidden">
+              <BottomNav />
+            </div>
           </div>
         </OnboardingGuard>
       </CryptoGuard>

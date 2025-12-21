@@ -12,12 +12,17 @@ import { useAuth } from '@/lib/auth-context';
 import { getFirebaseDb } from '@/lib/firebase';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 
+import { useGuestStore } from '@/lib/stores/guest-store';
+import { useUserStore } from '@/lib/stores/user-store';
+import Link from 'next/link';
+
 export default function SetupPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const shouldMigrate = searchParams.get('migrate') === 'true';
   const { status, generateAndStoreKey, recoveryPhrase } = useCrypto();
   const { user } = useAuth();
+  const { profile } = useUserStore();
   const [loading, setLoading] = useState(false);
   const [passphrase, setPassphrase] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +36,14 @@ export default function SetupPage() {
     // 2. We're not in migration mode (or user has seen the recovery phrase)
     // 3. We haven't already started redirecting
     if (status === 'ready' && !shouldMigrate && !isRedirecting) {
-      router.replace('/people');
+      // Check if we have guest data to migrate even if not explicitly asked
+      const hasGuestData = useGuestStore.getState().hasGuestData();
+      if (!hasGuestData) {
+        router.replace('/people');
+      }
+      // If hasGuestData is true, we stay here to let user click "Continue" which triggers migration
+      // OR we could auto-migrate?
+      // Better to let them see the "Save Recovery Phrase" screen first.
     }
   }, [router, status, shouldMigrate, isRedirecting]);
 
@@ -39,6 +51,60 @@ export default function SetupPage() {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <p className="text-sm text-gray-600">Sign in to set up encryption.</p>
+      </div>
+    );
+  }
+
+  // SAFETY CHECK: If user already has encryption enabled, block setup
+  if (profile?.encryptionEnabled && !localPhrase) {
+    // If status is 'missing', it means this is a new device (no local key found)
+    if (status === 'missing') {
+      return (
+        <div className="flex min-h-screen items-center justify-center p-6">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle>New Device Detected</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-zinc-600">
+                Your account is already encrypted, but this device doesn&apos;t have the key yet.
+                You need to import your key using your recovery phrase.
+              </p>
+              <div className="flex flex-col gap-2">
+                <Button asChild>
+                  <Link href="/recover">Import Key (Recovery Phrase)</Link>
+                </Button>
+                <p className="text-xs text-zinc-500 text-center pt-2">
+                  Do not generate a new key, or you will lose access to your existing data.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
+    // If status is 'locked', they just need to unlock
+    return (
+      <div className="flex min-h-screen items-center justify-center p-6">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Vault Locked</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-zinc-600">
+              Your encryption key is present but locked. Please enter your passphrase.
+            </p>
+            <div className="flex flex-col gap-2">
+              <Button asChild>
+                <Link href="/unlock">Unlock Vault</Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link href="/recover">I lost my passphrase</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -76,8 +142,11 @@ export default function SetupPage() {
 
     setIsRedirecting(true);
 
-    // Trigger migration if we're in migration mode
-    if (shouldMigrate) {
+    // Check if we have guest data to migrate
+    const hasGuestData = useGuestStore.getState().hasGuestData();
+
+    // Trigger migration if we're in migration mode or have guest data
+    if (shouldMigrate || hasGuestData) {
       try {
         const { migrateGuestData } = await import('@/lib/migrate-guest-data');
         await migrateGuestData(user.uid);

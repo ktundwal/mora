@@ -17,7 +17,7 @@ Canonical monetization model lives in [docs/BUSINESS.md](docs/BUSINESS.md).
 
 ## 4) Hard constraints
 - Cloud web first, **mobile-friendly** (phone browser primary)
-- **Google Auth required** (no email/password)
+- **Authentication:** Google Auth (primary) + Email/Password (supported via FirebaseUI)
 - Use **GCP/Firebase** (Auth, Firestore, Storage, Functions/Run)
 - Code lives on GitHub with CI/CD deployment pipeline
 - Environments: dev + prod Firebase projects; preview deploys should target dev/staging, prod only from `main`.

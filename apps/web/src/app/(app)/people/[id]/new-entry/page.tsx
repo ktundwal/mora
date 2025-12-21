@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, ArrowRight, MessageSquare, BookOpen, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -38,7 +38,7 @@ export default function NewEntryPage() {
     // Redirect if person not found (after loading check?)
     // Assuming people are loaded by layout/page or cached.
     // If user refreshes here, we might need to fetch.
-    const { fetchPeople } = usePersonStore();
+    const { fetchPeople, isLoading: isLoadingPeople } = usePersonStore();
     useEffect(() => {
         if (profile?.uid && people.length === 0) {
             fetchPeople();
@@ -89,7 +89,7 @@ export default function NewEntryPage() {
                 ? `Journal entry about ${person.displayName}`
                 : `Chat with ${person.displayName}`;
 
-            const newId = await createConversation({
+            await createConversation({
                 uid: profile.uid,
                 title,
                 parsedMessages,
@@ -97,7 +97,7 @@ export default function NewEntryPage() {
                 personId: person.id
             });
 
-            router.push(`/conversations/${newId}`);
+            router.push(`/people/${person.id}`);
 
         } catch (error) {
             console.error('Failed to create entry:', error);
@@ -106,7 +106,17 @@ export default function NewEntryPage() {
     };
 
     if (!person) {
-        return <div className="p-6 text-center text-zinc-500">Loading...</div>;
+        if (isLoadingPeople || !profile?.uid) {
+             return (
+                <div className="flex min-h-screen items-center justify-center">
+                    <div className="text-center">
+                        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-zinc-200 border-t-zinc-900" />
+                        <p className="mt-4 text-sm text-zinc-500">Loading...</p>
+                    </div>
+                </div>
+            );
+        }
+        return <div className="p-6 text-center text-zinc-500">Person not found</div>;
     }
 
     return (
@@ -178,7 +188,7 @@ export default function NewEntryPage() {
                             onClick={handleSave}
                             disabled={!content.trim() || isSaving}
                         >
-                            {isSaving ? 'Saving...' : 'Analyze & Save'}
+                            {isSaving ? 'Saving...' : 'Help me think through'}
                             <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                     </div>

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { PlusCircle, Users, PenLine } from 'lucide-react';
+import { PlusCircle, Users, PenLine, Anchor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -81,22 +81,22 @@ export default function PeoplePage() {
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-40 border-b border-zinc-200 bg-white px-4 py-4 dark:border-zinc-800 dark:bg-zinc-900">
+      <header className="sticky top-0 z-40 border-b border-zinc-200 bg-white px-4 py-4 dark:border-zinc-800 dark:bg-zinc-900 md:static md:border-b-0 md:bg-transparent md:pt-8 md:pb-4">
         <div className="mx-auto max-w-4xl">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-semibold">People</h1>
-              <p className="text-sm text-zinc-500">
-                {isOnboarding
-                  ? 'Add someone you want to strengthen a relationship with'
-                  : `${people.length} ${people.length === 1 ? 'person' : 'people'}`}
-              </p>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800 md:hidden">
+                <Anchor className="h-6 w-6 text-zinc-900 dark:text-zinc-100" />
+              </div>
+              <div>
+                <h1 className="text-xl font-semibold">People</h1>
+                <p className="text-sm text-zinc-500">
+                  {isOnboarding
+                    ? 'Add someone you want to strengthen a relationship with'
+                    : `${people.length} ${people.length === 1 ? 'person' : 'people'}`}
+                </p>
+              </div>
             </div>
-            {/* 'Add Person' is now a card in the grid, so we remove the header button unless needed for mobile? 
-                User said 'quick button to add', but also 'move "New Entry" to last'. 
-                For People page, user said 'Add Person' will be a card in this grid. 
-                Let's keep header clean or remove the button if the card is sufficient.
-                I'll leave it hidden for now to focus on the card action. */}
           </div>
         </div>
       </header>
@@ -185,40 +185,39 @@ export default function PeoplePage() {
             <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
               {people.map((p) => (
                 <div key={p.id} className="relative group">
-                  <Link href={`/people/${p.id}`} className="block h-full">
-                    <Card className="h-full cursor-pointer transition-all hover:bg-zinc-50 hover:shadow-sm dark:hover:bg-zinc-800/50">
-                      <CardContent className="flex h-full flex-col justify-between p-4">
-                        <div>
-                          <div className="font-medium truncate text-lg">{p.displayName}</div>
-                          <div className="mt-1 text-xs text-zinc-500">
-                            {RELATIONSHIP_OPTIONS.find((o) => o.value === p.relationshipType)?.label ?? p.relationshipType}
-                          </div>
+                  <Card className="h-full transition-all hover:bg-zinc-50 hover:shadow-sm dark:hover:bg-zinc-800/50 relative">
+                    <Link href={`/people/${p.id}`} className="absolute inset-0 z-10">
+                      <span className="sr-only">View {p.displayName}</span>
+                    </Link>
+                    <CardContent className="flex h-full flex-col justify-between p-4">
+                      <div>
+                        <div className="font-medium truncate text-lg">{p.displayName}</div>
+                        <div className="mt-1 text-xs text-zinc-500">
+                          {RELATIONSHIP_OPTIONS.find((o) => o.value === p.relationshipType)?.label ?? p.relationshipType}
                         </div>
+                      </div>
 
-                        <div className="mt-4 flex justify-end">
-                          {/* Quick Action: Add Entry */}
-                          {/* Prevent navigation to person detail when clicking this button */}
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            className="h-8 w-8 p-0 rounded-full opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
-                            asChild
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <Link href={`/people/${p.id}/new-entry`}>
-                              <PenLine className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
-                              <span className="sr-only">Add entry</span>
-                            </Link>
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
+                      <div className="mt-4 flex justify-end relative z-20">
+                        {/* Quick Action: Add Entry */}
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          className="h-8 w-8 p-0 rounded-full opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+                          asChild
+                        >
+                          <Link href={`/people/${p.id}/new-entry`}>
+                            <PenLine className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
+                            <span className="sr-only">Add entry</span>
+                          </Link>
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               ))}
 
               {/* Add Person Card (Last) */}
-              <Link href="/onboarding/identity" className="block h-full">
+              <Link href="/people/new" className="block h-full">
                 <Card className="h-full border-dashed cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50 flex items-center justify-center min-h-[140px]">
                   <CardContent className="flex flex-col items-center justify-center p-6 text-center">
                     <div className="rounded-full bg-zinc-100 p-3 mb-3 dark:bg-zinc-800">

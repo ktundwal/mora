@@ -12,7 +12,7 @@ import type { GuestAnalysisRequest, GuestAnalysisResponse } from '@mora/core';
 import Markdown from 'react-markdown';
 
 export default function OnboardingPreviewPage() {
-    const { signInWithGoogle, user } = useAuth();
+    const { user } = useAuth();
     const { guestContext } = useGuestStore();
     const [isSigningIn, setIsSigningIn] = useState(false);
 
@@ -88,13 +88,9 @@ export default function OnboardingPreviewPage() {
         } else {
             // User not authenticated - sign in first
             setIsSigningIn(true);
-            try {
-                await signInWithGoogle();
-                // Auth-context will handle the rest (redirect to setup, then migration)
-            } catch (error) {
-                console.error('Sign-in failed:', error);
-                setIsSigningIn(false);
-            }
+            // Redirect to login page which uses FirebaseUI
+            // The guest data is persisted in localStorage so it will be available after login
+            window.location.href = '/login';
         }
     };
 
