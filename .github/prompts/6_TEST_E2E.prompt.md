@@ -71,6 +71,10 @@ npm run test:e2e -- --debug
 npx playwright show-report
 ```
 
+Traces & screenshots: Every test now records a full trace with step-by-step screenshots. Reports render in `playwright-report/` after `npm run test:e2e`.
+
+Screenshots now save for every run (not just failures) in Playwright's default output directory.
+
 ---
 
 ## Step 5: Update Snapshots
@@ -88,6 +92,7 @@ Tests live in: `apps/web/tests/e2e/*.spec.ts`
 
 Current tests:
 - `home.spec.ts` - Landing page tests
+- `comprehensive-flow.spec.ts` - Full onboarding + people + settings UX flow
 
 ---
 

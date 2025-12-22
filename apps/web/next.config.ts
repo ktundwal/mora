@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   // Remove "export" for dev - we need server features for auth
   // output: "export",
   transpilePackages: ["@mora/core"],
-  allowedDevOrigins: ["http://127.0.0.1:3100", "http://localhost:3100"],
+  allowedDevOrigins: ["http://127.0.0.1:3100", "http://localhost:3100", "http://localhost:3000"],
   images: {
     remotePatterns: [
       {
