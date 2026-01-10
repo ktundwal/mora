@@ -13,6 +13,18 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
+  // Work-specific icons
+  Heart,
+  Sword,
+  Handshake,
+  BookOpen,
+  Shield,
+  ShieldOff,
+  Eye,
+  User,
+  CheckSquare,
+  Mail,
+  Award,
   type LucideIcon 
 } from 'lucide-react';
 import type { CommonPattern } from '@mora/core';
@@ -29,6 +41,18 @@ const iconMap: Record<string, LucideIcon> = {
   Wrench,
   Contrast,
   FastForward,
+  // Work-specific
+  Heart,
+  Sword,
+  Handshake,
+  BookOpen,
+  Shield,
+  ShieldOff,
+  Eye,
+  User,
+  CheckSquare,
+  Mail,
+  Award,
 };
 
 interface PatternCardProps {

@@ -1000,7 +1000,7 @@ I updated microcopy in 6 files to lead with "acute pain":
 
 ---
 
-_**User (2026-01-10 23:29Z)**_
+_**User (2026-01-10 23:35Z)**_
 
 go w option B
 
@@ -1123,6 +1123,838 @@ Read [](file:///Users/admin/github/mora/packages/core/src/types.ts#60-60), lines
 
 ---
 
+<tool-use data-tool-type="unknown" data-tool-name="copilot_createFile">
+<details>
+<summary>Tool use: **copilot_createFile**</summary>
+
+
+Parameters:
+
+```json
+{
+  "file_path": "/Users/admin/github/mora/packages/core/src/patterns.ts",
+  "relativeWorkspacePath": "patterns.ts"
+}
+```
+Additional data:
+
+```json
+{
+  "vscodeToolId": "copilot_createFile",
+  "isHidden": false
+}
+```
+Result:
+
+```json
+{
+  "invocationMessage": "Creating [](file:///Users/admin/github/mora/packages/core/src/patterns.ts)",
+  "pastTenseMessage": "Created [](file:///Users/admin/github/mora/packages/core/src/patterns.ts)",
+  "isConfirmed": {
+    "type": 1
+  },
+  "content": "",
+  "textEditContent": "/**\n * Common Communication Patterns\n * \n * Research-backed patterns from attachment theory, conflict research, and \n * cognitive behavioral therapy. These are NOT personalized user patterns -\n * they are general patterns that users can \"bookmark\" if they resonate.\n * \n * Source frameworks:\n * - Gottman's Four Horsemen (criticism, contempt, defensiveness, stonewalling)\n * - Attachment Theory (anxious-preoccupied patterns)\n * - Nonviolent Communication (unmet needs under behaviors)\n */\n\nexport interface CommonPattern {\n  id: string;\n  name: string;\n  shortDescription: string;\n  longDescription: string;\n  /** What it looks like in behavior */\n  examples: string[];\n  /** The unmet need underneath */\n  underlyingNeed: string;\n  /** What to try instead */\n  alternative: string;\n  /** Which contexts this is most relevant for */\n  contexts: ('romantic' | 'family' | 'work' | 'friendship')[];\n  /** Icon hint for UI (lucide icon name) */\n  icon: string;\n}\n\n/**\n * Research-backed common patterns.\n * Users can bookmark ones that resonate → seed data for MIRA later.\n */\nexport const COMMON_PATTERNS: CommonPattern[] = [\n  {\n    id: 'over-explaining',\n    name: 'Over-Explaining',\n    shortDescription: 'Defending yourself with logic when they need to feel heard',\n    longDescription: \n      'When criticized or in conflict, you explain your reasoning in detail. ' +\n      'The more they push back, the more you explain. But they don\\'t need to understand ' +\n      'your logic—they need to feel understood.',\n    examples: [\n      '\"I only said that because...\"',\n      '\"Let me explain why I did that...\"',\n      '\"You\\'re not understanding, what I meant was...\"',\n    ],\n    underlyingNeed: 'To be seen as reasonable and good-intentioned',\n    alternative: \n      'Pause the explanation. Acknowledge their feeling first: \"I can see this hurt you.\" ' +\n      'Your logic can wait.',\n    contexts: ['romantic', 'family', 'work'],\n    icon: 'MessageSquareMore',\n  },\n  {\n    id: 'reassurance-seeking',\n    name: 'Asking for Reassurance',\n    shortDescription: 'Needing them to confirm the relationship is okay',\n    longDescription:\n      'After conflict or silence, you ask \"Are we okay?\" or \"Are you mad?\" ' +\n      'The relief is temporary. The anxiety returns. The question becomes a pattern.',\n    examples: [\n      '\"Are we okay?\"',\n      '\"Are you still upset?\"',\n      '\"Do you still love me?\"',\n      '\"Just tell me we\\'re fine and I\\'ll drop it\"',\n    ],\n    underlyingNeed: 'Safety and certainty in the relationship',\n    alternative:\n      'Sit with the discomfort. They\\'ll show you they\\'re okay through actions. ' +\n      'If you must ask, ask once and trust the answer.',\n    contexts: ['romantic', 'family'],\n    icon: 'HelpCircle',\n  },\n  {\n    id: 'withdrawing',\n    name: 'Going Silent',\n    shortDescription: 'Pulling away instead of saying what\\'s wrong',\n    longDescription:\n      'When hurt or overwhelmed, you go quiet. You might say \"I\\'m fine\" when you\\'re not. ' +\n      'The silence protects you but confuses them. They can\\'t fix what they can\\'t see.',\n    examples: [\n      'Short replies: \"K\", \"Fine\", \"Whatever\"',\n      'Leaving the room mid-conversation',\n      'Taking hours to respond when upset',\n      '\"I don\\'t want to talk about it\"',\n    ],\n    underlyingNeed: 'Space to process, protection from more hurt',\n    alternative:\n      'Name it: \"I need 20 minutes to think, then I\\'ll come back.\" ' +\n      'Give them something to hold onto while you process.',\n    contexts: ['romantic', 'family', 'work'],\n    icon: 'VolumeX',\n  },\n  {\n    id: 'ledgering',\n    name: 'Keeping Score',\n    shortDescription: 'Bringing up past wrongs during current conflicts',\n    longDescription:\n      'In a disagreement, you reference something they did before: \"Well, you did X last month.\" ' +\n      'It feels like evidence, but it derails the current issue and makes them defensive.',\n    examples: [\n      '\"This is just like when you...\"',\n      '\"You always do this\"',\n      '\"Remember when you...\"',\n      '\"That\\'s rich coming from someone who...\"',\n    ],\n    underlyingNeed: 'To feel like your grievances are valid and remembered',\n    alternative:\n      'Stay in the present conflict. Write down past hurts separately. ' +\n      'Address them in a calm moment, not as ammunition.',\n    contexts: ['romantic', 'family'],\n    icon: 'Scale',\n  },\n  {\n    id: 'mind-reading',\n    name: 'Assuming Intent',\n    shortDescription: 'Deciding you know why they did something',\n    longDescription:\n      'You fill in their motivations: \"You did that because you don\\'t care.\" ' +\n      'But you\\'re guessing. And you\\'re usually guessing wrong—projecting your fears onto their actions.',\n    examples: [\n      '\"You obviously don\\'t respect my time\"',\n      '\"You just want to hurt me\"',\n      '\"You knew this would upset me and did it anyway\"',\n    ],\n    underlyingNeed: 'Certainty about where you stand with them',\n    alternative:\n      'Replace \"You did X because...\" with \"When X happened, I felt... Was that your intention?\" ' +\n      'Ask before concluding.',\n    contexts: ['romantic', 'family', 'work'],\n    icon: 'Brain',\n  },\n  {\n    id: 'fixing-before-feeling',\n    name: 'Jumping to Solutions',\n    shortDescription: 'Offering fixes when they need to vent',\n    longDescription:\n      'They share a problem and you immediately suggest solutions. ' +\n      'It feels helpful, but they might just need to be heard. Fixing can feel like dismissing.',\n    examples: [\n      '\"Have you tried...\"',\n      '\"Why don\\'t you just...\"',\n      '\"Here\\'s what you should do...\"',\n    ],\n    underlyingNeed: 'To feel useful and reduce their (and your) discomfort',\n    alternative:\n      'Ask: \"Do you want me to help problem-solve, or do you need to vent?\" ' +\n      'Let them choose.',\n    contexts: ['romantic', 'family', 'work', 'friendship'],\n    icon: 'Wrench',\n  },\n  {\n    id: 'all-or-nothing',\n    name: 'Black-and-White Thinking',\n    shortDescription: 'Seeing situations as completely good or bad',\n    longDescription:\n      'One mistake and the whole day/relationship/project is ruined. ' +\n      '\"You never...\" or \"You always...\" Everything is extreme.',\n    examples: [\n      '\"You never listen to me\"',\n      '\"This always happens\"',\n      '\"Everything is ruined now\"',\n      '\"I can\\'t do anything right\"',\n    ],\n    underlyingNeed: 'Clarity in ambiguous emotional situations',\n    alternative:\n      'Replace \"always/never\" with \"sometimes\" or \"in this instance.\" ' +\n      'Notice the gray between black and white.',\n    contexts: ['romantic', 'family', 'work'],\n    icon: 'Contrast',\n  },\n  {\n    id: 'premature-apology',\n    name: 'Apologizing Too Fast',\n    shortDescription: 'Saying sorry to end the discomfort, not because you understand',\n    longDescription:\n      'Conflict is uncomfortable, so you apologize quickly to make it stop. ' +\n      'But they can tell you don\\'t really understand what hurt them. The apology feels hollow.',\n    examples: [\n      '\"Fine, I\\'m sorry, okay?\"',\n      '\"I said sorry, what more do you want?\"',\n      'Apologizing before they\\'ve finished explaining',\n    ],\n    underlyingNeed: 'To escape the discomfort of their hurt/anger',\n    alternative:\n      'Let them finish. Ask what specifically hurt. Then apologize for that specific thing. ' +\n      '\"I\\'m sorry that when I did X, it made you feel Y.\"',\n    contexts: ['romantic', 'family', 'work'],\n    icon: 'FastForward',\n  },\n];\n\n/**\n * Get patterns relevant to a specific context\n */\nexport function getPatternsForContext(\n  context: 'romantic' | 'family' | 'work' | 'friendship'\n): CommonPattern[] {\n  return COMMON_PATTERNS.filter(p =&gt; p.contexts.includes(context));\n}\n\n/**\n * Get a pattern by ID\n */\nexport function getPatternById(id: string): CommonPattern | undefined {\n  return COMMON_PATTERNS.find(p =&gt; p.id === id);\n}\n",
+  "toolCallResult": null
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="copilot_readFile">
+<details>
+<summary>Tool use: **copilot_readFile** • Reading [](file:///Users/admin/github/mora/packages/core/src/index.ts)</summary>
+
+
+Read [](file:///Users/admin/github/mora/packages/core/src/index.ts)
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="copilot_replaceString">
+<details>
+<summary>Tool use: **copilot_replaceString**</summary>
+
+Additional data:
+
+```json
+{
+  "vscodeToolId": "copilot_replaceString",
+  "isHidden": true
+}
+```
+Result:
+
+```json
+{
+  "invocationMessage": "Using \"Replace String in File\"",
+  "isConfirmed": {
+    "type": 1
+  },
+  "content": "&#96;&#96;&#96;typescript\n\nexport * from './patterns';\n&#96;&#96;&#96;\n\n",
+  "textEditContent": "\nexport * from './patterns';",
+  "toolCallResult": null
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="copilot_readFile">
+<details>
+<summary>Tool use: **copilot_readFile** • Reading [](file:///Users/admin/github/mora/apps/web/src/components/ui/card.tsx#1-1), lines 1 to 60</summary>
+
+
+Read [](file:///Users/admin/github/mora/apps/web/src/components/ui/card.tsx#1-1), lines 1 to 60
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="copilot_createFile">
+<details>
+<summary>Tool use: **copilot_createFile**</summary>
+
+
+Parameters:
+
+```json
+{
+  "file_path": "/Users/admin/github/mora/apps/web/src/components/patterns/pattern-card.tsx",
+  "relativeWorkspacePath": "pattern-card.tsx"
+}
+```
+Additional data:
+
+```json
+{
+  "vscodeToolId": "copilot_createFile",
+  "isHidden": false
+}
+```
+Result:
+
+```json
+{
+  "invocationMessage": "Creating [](file:///Users/admin/github/mora/apps/web/src/components/patterns/pattern-card.tsx)",
+  "pastTenseMessage": "Created [](file:///Users/admin/github/mora/apps/web/src/components/patterns/pattern-card.tsx)",
+  "isConfirmed": {
+    "type": 1
+  },
+  "content": "",
+  "textEditContent": "'use client';\n\nimport { useState } from 'react';\nimport { \n  MessageSquareMore, \n  HelpCircle, \n  VolumeX, \n  Scale, \n  Brain, \n  Wrench, \n  Contrast, \n  FastForward,\n  Check,\n  ChevronDown,\n  ChevronUp,\n  type LucideIcon \n} from 'lucide-react';\nimport type { CommonPattern } from '@mora/core';\nimport { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';\nimport { Button } from '@/components/ui/button';\nimport { cn } from '@/lib/utils';\n\nconst iconMap: Record&lt;string, LucideIcon&gt; = {\n  MessageSquareMore,\n  HelpCircle,\n  VolumeX,\n  Scale,\n  Brain,\n  Wrench,\n  Contrast,\n  FastForward,\n};\n\ninterface PatternCardProps {\n  pattern: CommonPattern;\n  isBookmarked?: boolean;\n  onBookmark?: (patternId: string) =&gt; void;\n  /** Compact view for lists, expanded for detail */\n  variant?: 'compact' | 'expanded';\n}\n\nexport function PatternCard({ \n  pattern, \n  isBookmarked = false, \n  onBookmark,\n  variant = 'compact',\n}: PatternCardProps) {\n  const [isExpanded, setIsExpanded] = useState(variant === 'expanded');\n  const [justBookmarked, setJustBookmarked] = useState(false);\n  \n  const Icon = iconMap[pattern.icon] || MessageSquareMore;\n\n  const handleBookmark = () =&gt; {\n    onBookmark?.(pattern.id);\n    setJustBookmarked(true);\n    setTimeout(() =&gt; setJustBookmarked(false), 2000);\n  };\n\n  return (\n    &lt;Card className={cn(\n      \"transition-all duration-200\",\n      isBookmarked &amp;&amp; \"border-primary/30 bg-primary/5\"\n    )}&gt;\n      &lt;CardHeader className=\"pb-2\"&gt;\n        &lt;div className=\"flex items-start justify-between gap-3\"&gt;\n          &lt;div className=\"flex items-center gap-3\"&gt;\n            &lt;div className={cn(\n              \"p-2 rounded-lg\",\n              isBookmarked ? \"bg-primary/10 text-primary\" : \"bg-muted text-muted-foreground\"\n            )}&gt;\n              &lt;Icon className=\"h-4 w-4\" /&gt;\n            &lt;/div&gt;\n            &lt;div&gt;\n              &lt;CardTitle className=\"text-base\"&gt;{pattern.name}&lt;/CardTitle&gt;\n              &lt;p className=\"text-sm text-muted-foreground mt-0.5\"&gt;\n                {pattern.shortDescription}\n              &lt;/p&gt;\n            &lt;/div&gt;\n          &lt;/div&gt;\n          \n          {variant === 'compact' &amp;&amp; (\n            &lt;Button\n              variant=\"ghost\"\n              size=\"icon\"\n              className=\"h-8 w-8 shrink-0\"\n              onClick={() =&gt; setIsExpanded(!isExpanded)}\n            &gt;\n              {isExpanded ? (\n                &lt;ChevronUp className=\"h-4 w-4\" /&gt;\n              ) : (\n                &lt;ChevronDown className=\"h-4 w-4\" /&gt;\n              )}\n            &lt;/Button&gt;\n          )}\n        &lt;/div&gt;\n      &lt;/CardHeader&gt;\n\n      {isExpanded &amp;&amp; (\n        &lt;CardContent className=\"space-y-4\"&gt;\n          &lt;p className=\"text-sm leading-relaxed\"&gt;\n            {pattern.longDescription}\n          &lt;/p&gt;\n\n          &lt;div className=\"space-y-2\"&gt;\n            &lt;p className=\"text-xs font-medium text-muted-foreground uppercase tracking-wide\"&gt;\n              What it sounds like\n            &lt;/p&gt;\n            &lt;ul className=\"space-y-1\"&gt;\n              {pattern.examples.slice(0, 3).map((example, i) =&gt; (\n                &lt;li key={i} className=\"text-sm text-muted-foreground pl-3 border-l-2 border-muted\"&gt;\n                  {example}\n                &lt;/li&gt;\n              ))}\n            &lt;/ul&gt;\n          &lt;/div&gt;\n\n          &lt;div className=\"p-3 rounded-lg bg-muted/50\"&gt;\n            &lt;p className=\"text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1\"&gt;\n              What to try instead\n            &lt;/p&gt;\n            &lt;p className=\"text-sm\"&gt;\n              {pattern.alternative}\n            &lt;/p&gt;\n          &lt;/div&gt;\n\n          {onBookmark &amp;&amp; (\n            &lt;Button\n              variant={isBookmarked ? \"secondary\" : \"outline\"}\n              className=\"w-full\"\n              onClick={handleBookmark}\n              disabled={justBookmarked}\n            &gt;\n              {justBookmarked ? (\n                &lt;&gt;\n                  &lt;Check className=\"h-4 w-4 mr-2\" /&gt;\n                  Saved\n                &lt;/&gt;\n              ) : isBookmarked ? (\n                &lt;&gt;\n                  &lt;Check className=\"h-4 w-4 mr-2\" /&gt;\n                  This applies to me\n                &lt;/&gt;\n              ) : (\n                \"This applies to me\"\n              )}\n            &lt;/Button&gt;\n          )}\n        &lt;/CardContent&gt;\n      )}\n    &lt;/Card&gt;\n  );\n}\n",
+  "toolCallResult": null
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="copilot_createFile">
+<details>
+<summary>Tool use: **copilot_createFile**</summary>
+
+
+Parameters:
+
+```json
+{
+  "file_path": "/Users/admin/github/mora/apps/web/src/components/patterns/pattern-list.tsx",
+  "relativeWorkspacePath": "pattern-list.tsx"
+}
+```
+Additional data:
+
+```json
+{
+  "vscodeToolId": "copilot_createFile",
+  "isHidden": false
+}
+```
+Result:
+
+```json
+{
+  "invocationMessage": "Creating [](file:///Users/admin/github/mora/apps/web/src/components/patterns/pattern-list.tsx)",
+  "pastTenseMessage": "Created [](file:///Users/admin/github/mora/apps/web/src/components/patterns/pattern-list.tsx)",
+  "isConfirmed": {
+    "type": 1
+  },
+  "content": "",
+  "textEditContent": "'use client';\n\nimport { useState, useCallback } from 'react';\nimport { COMMON_PATTERNS, type CommonPattern } from '@mora/core';\nimport { PatternCard } from './pattern-card';\n\ninterface PatternListProps {\n  /** Which patterns to show. Defaults to all. */\n  patterns?: CommonPattern[];\n  /** Already bookmarked pattern IDs */\n  bookmarkedIds?: string[];\n  /** Called when user bookmarks a pattern */\n  onBookmark?: (patternId: string) =&gt; void;\n  /** Maximum patterns to show (useful for preview) */\n  maxPatterns?: number;\n  /** Title above the list */\n  title?: string;\n  /** Subtitle/description */\n  subtitle?: string;\n}\n\nexport function PatternList({\n  patterns = COMMON_PATTERNS,\n  bookmarkedIds = [],\n  onBookmark,\n  maxPatterns,\n  title,\n  subtitle,\n}: PatternListProps) {\n  // Local state for optimistic UI when no onBookmark provided\n  const [localBookmarks, setLocalBookmarks] = useState&lt;Set&lt;string&gt;&gt;(\n    new Set(bookmarkedIds)\n  );\n\n  const handleBookmark = useCallback((patternId: string) =&gt; {\n    setLocalBookmarks(prev =&gt; {\n      const next = new Set(prev);\n      if (next.has(patternId)) {\n        next.delete(patternId);\n      } else {\n        next.add(patternId);\n      }\n      return next;\n    });\n    onBookmark?.(patternId);\n  }, [onBookmark]);\n\n  const displayPatterns = maxPatterns \n    ? patterns.slice(0, maxPatterns) \n    : patterns;\n\n  return (\n    &lt;div className=\"space-y-4\"&gt;\n      {(title || subtitle) &amp;&amp; (\n        &lt;div className=\"space-y-1\"&gt;\n          {title &amp;&amp; (\n            &lt;h3 className=\"text-lg font-semibold\"&gt;{title}&lt;/h3&gt;\n          )}\n          {subtitle &amp;&amp; (\n            &lt;p className=\"text-sm text-muted-foreground\"&gt;{subtitle}&lt;/p&gt;\n          )}\n        &lt;/div&gt;\n      )}\n      \n      &lt;div className=\"space-y-3\"&gt;\n        {displayPatterns.map(pattern =&gt; (\n          &lt;PatternCard\n            key={pattern.id}\n            pattern={pattern}\n            isBookmarked={localBookmarks.has(pattern.id)}\n            onBookmark={handleBookmark}\n            variant=\"compact\"\n          /&gt;\n        ))}\n      &lt;/div&gt;\n\n      {maxPatterns &amp;&amp; patterns.length &gt; maxPatterns &amp;&amp; (\n        &lt;p className=\"text-sm text-muted-foreground text-center\"&gt;\n          + {patterns.length - maxPatterns} more patterns\n        &lt;/p&gt;\n      )}\n    &lt;/div&gt;\n  );\n}\n",
+  "toolCallResult": null
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="copilot_createFile">
+<details>
+<summary>Tool use: **copilot_createFile**</summary>
+
+
+Parameters:
+
+```json
+{
+  "file_path": "/Users/admin/github/mora/apps/web/src/components/patterns/index.ts",
+  "relativeWorkspacePath": "index.ts"
+}
+```
+Additional data:
+
+```json
+{
+  "vscodeToolId": "copilot_createFile",
+  "isHidden": false
+}
+```
+Result:
+
+```json
+{
+  "invocationMessage": "Creating [](file:///Users/admin/github/mora/apps/web/src/components/patterns/index.ts)",
+  "pastTenseMessage": "Created [](file:///Users/admin/github/mora/apps/web/src/components/patterns/index.ts)",
+  "isConfirmed": {
+    "type": 1
+  },
+  "content": "",
+  "textEditContent": "export { PatternCard } from './pattern-card';\nexport { PatternList } from './pattern-list';\n",
+  "toolCallResult": null
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="copilot_readFile">
+<details>
+<summary>Tool use: **copilot_readFile** • Reading [](file:///Users/admin/github/mora/apps/web/src/app/onboarding/preview/page.tsx#1-1), lines 1 to 150</summary>
+
+
+Read [](file:///Users/admin/github/mora/apps/web/src/app/onboarding/preview/page.tsx#1-1), lines 1 to 150
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="copilot_readFile">
+<details>
+<summary>Tool use: **copilot_readFile** • Reading [](file:///Users/admin/github/mora/apps/web/src/app/onboarding/preview/page.tsx#150-150), lines 150 to 160</summary>
+
+
+Read [](file:///Users/admin/github/mora/apps/web/src/app/onboarding/preview/page.tsx#150-150), lines 150 to 160
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="copilot_replaceString">
+<details>
+<summary>Tool use: **copilot_replaceString**</summary>
+
+Additional data:
+
+```json
+{
+  "vscodeToolId": "copilot_replaceString",
+  "isHidden": true
+}
+```
+Result:
+
+```json
+{
+  "invocationMessage": "Using \"Replace String in File\"",
+  "isConfirmed": {
+    "type": 1
+  },
+  "content": "&#96;&#96;&#96;tsx\n{ COMMON_PATTERNS } from '@mora/core';\nimport { PatternList } from '@/components/patterns';\nimport \n&#96;&#96;&#96;\n\n",
+  "textEditContent": "{ COMMON_PATTERNS } from '@mora/core';\nimport { PatternList } from '@/components/patterns';\nimport ",
+  "toolCallResult": null
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="copilot_replaceString">
+<details>
+<summary>Tool use: **copilot_replaceString**</summary>
+
+Additional data:
+
+```json
+{
+  "vscodeToolId": "copilot_replaceString",
+  "isHidden": true
+}
+```
+Result:
+
+```json
+{
+  "invocationMessage": "Using \"Replace String in File\"",
+  "isConfirmed": {
+    "type": 1
+  },
+  "content": "&#96;&#96;&#96;tsx\n\n\n            {/* Common Patterns Section - shown after analysis loads */}\n            {analysisStatus === 'success' &amp;&amp; (\n                &lt;div className=\"mb-8\"&gt;\n                    &lt;PatternList\n                        patterns={COMMON_PATTERNS.slice(0, 4)}\n                        title=\"Common patterns in hard conversations\"\n                        subtitle=\"Do any of these sound familiar? Tap to save the ones that apply to you.\"\n                        onBookmark={(patternId) =&gt; {\n                            // For now, just log. We'll persist these after auth.\n                            console.log('[Patterns] Guest bookmarked:', patternId);\n                            // Could store in guestStore if needed\n                        }}\n                    /&gt;\n                &lt;/div&gt;\n            )}\n&#96;&#96;&#96;\n\n",
+  "textEditContent": "\n\n            {/* Common Patterns Section - shown after analysis loads */}\n            {analysisStatus === 'success' &amp;&amp; (\n                &lt;div className=\"mb-8\"&gt;\n                    &lt;PatternList\n                        patterns={COMMON_PATTERNS.slice(0, 4)}\n                        title=\"Common patterns in hard conversations\"\n                        subtitle=\"Do any of these sound familiar? Tap to save the ones that apply to you.\"\n                        onBookmark={(patternId) =&gt; {\n                            // For now, just log. We'll persist these after auth.\n                            console.log('[Patterns] Guest bookmarked:', patternId);\n                            // Could store in guestStore if needed\n                        }}\n                    /&gt;\n                &lt;/div&gt;\n            )}",
+  "toolCallResult": null
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="run_in_terminal">
+<details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+
+Parameters:
+
+```json
+{
+  "kind": "terminal",
+  "terminalToolSessionId": "f902e3c7-7af9-4519-9dce-a53fac54345b",
+  "terminalCommandId": "tool-8e0abbae-7163-4cf6-925a-941933946b97",
+  "commandLine": {
+    "original": "cd /Users/admin/github/mora &amp;&amp; npm run build 2&gt;&amp;1 | tail -50",
+    "toolEdited": " cd /Users/admin/github/mora &amp;&amp; npm run build 2&gt;&amp;1 | tail -50"
+  },
+  "language": "sh",
+  "autoApproveInfo": {
+    "value": "Auto approved by rules [&#96;cd (default)&#96;](command:workbench.action.terminal.chat.openTerminalSettingsLink?%255B7%255D \"View rule in settings\"), [&#96;npm run build (user)&#96;](command:workbench.action.terminal.chat.openTerminalSettingsLink?%255B3%255D \"View rule in settings\"), [&#96;tail (default)&#96;](command:workbench.action.terminal.chat.openTerminalSettingsLink?%255B7%255D \"View rule in settings\")",
+    "isTrusted": {
+      "enabledCommands": [
+        "workbench.action.terminal.chat.openTerminalSettingsLink"
+      ]
+    },
+    "supportThemeIcons": false,
+    "supportHtml": false,
+    "supportAlertSyntax": false
+  },
+  "terminalCommandState": {
+    "exitCode": 0,
+    "timestamp": 1768088033055,
+    "duration": 9728
+  },
+  "terminalCommandUri": {
+    "$mid": 1,
+    "path": "/675f1a3aeb2544c79813383fe1350851/3",
+    "scheme": "vscode-terminal",
+    "query": "command=tool-8e0abbae-7163-4cf6-925a-941933946b97"
+  },
+  "terminalCommandOutput": {
+    "text": "\r\n\r\n&gt; @mora/core@0.0.2 build\r\n&gt; tsc\r\n\r\n\r\n&gt; web@0.1.0 build\r\n&gt; next build\r\n\r\n   ▲ Next.js 16.0.10 (Turbopack)\r\n   - Environments: .env.local\r\n\r\n   Creating an optimized production build ...\r\n ✓ Compiled successfully in 3.1s\r\n   Running TypeScript ...\r\n   Collecting page data using 9 workers ...\r\n   Generating static pages using 9 workers (0/19) ...\r\n   Generating static pages using 9 workers (4/19) \r\n   Generating static pages using 9 workers (9/19) \r\n   Generating static pages using 9 workers (14/19) \r\n ✓ Generating static pages using 9 workers (19/19) in 485.1ms\r\n   Finalizing page optimization ...\r\n\r\nRoute (app)\r\n┌ ○ /\r\n├ ○ /_not-found\r\n├ ○ /conversations\r\n├ ƒ /conversations/[id]\r\n├ ƒ /conversations/[id]/link\r\n├ ○ /login\r\n├ ○ /new\r\n├ ○ /onboarding\r\n├ ○ /onboarding/context\r\n├ ○ /onboarding/identity\r\n├ ○ /onboarding/input\r\n├ ○ /onboarding/person\r\n├ ○ /onboarding/preview\r\n├ ○ /people\r\n├ ƒ /people/[id]\r\n├ ƒ /people/[id]/new-entry\r\n├ ○ /people/new\r\n├ ○ /recover\r\n├ ○ /settings\r\n├ ○ /setup\r\n└ ○ /unlock\r\n\r\n\r\n○  (Static)   prerendered as static content\r\nƒ  (Dynamic)  server-rendered on demand\r\n",
+    "lineCount": 51
+  },
+  "terminalTheme": {
+    "background": "#f8f8f8",
+    "foreground": "#3b3b3b"
+  }
+}
+```
+Additional data:
+
+```json
+{
+  "vscodeToolId": "run_in_terminal",
+  "isHidden": false
+}
+```
+Result:
+
+```json
+{
+  "invocationMessage": "Using \"Run in Terminal\"",
+  "isConfirmed": {
+    "type": 1
+  },
+  "content": "",
+  "textEditContent": "",
+  "toolCallResult": null
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="copilot_readFile">
+<details>
+<summary>Tool use: **copilot_readFile** • Reading [](file:///Users/admin/github/mora/apps/web/src/app/%28app%29/people/%5Bid%5D/page.tsx#1-1), lines 1 to 100</summary>
+
+
+Read [](file:///Users/admin/github/mora/apps/web/src/app/%28app%29/people/%5Bid%5D/page.tsx#1-1), lines 1 to 100
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="copilot_readFile">
+<details>
+<summary>Tool use: **copilot_readFile** • Reading [](file:///Users/admin/github/mora/apps/web/src/app/%28app%29/people/%5Bid%5D/page.tsx#100-100), lines 100 to 195</summary>
+
+
+Read [](file:///Users/admin/github/mora/apps/web/src/app/%28app%29/people/%5Bid%5D/page.tsx#100-100), lines 100 to 195
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="copilot_replaceString">
+<details>
+<summary>Tool use: **copilot_replaceString**</summary>
+
+Additional data:
+
+```json
+{
+  "vscodeToolId": "copilot_replaceString",
+  "isHidden": true
+}
+```
+Result:
+
+```json
+{
+  "invocationMessage": "Using \"Replace String in File\"",
+  "isConfirmed": {
+    "type": 1
+  },
+  "content": "&#96;&#96;&#96;tsx\n, ChevronDown, ChevronUp } from 'lucide-react';\nimport { Button } from '@/components/ui/button';\nimport { Card, CardContent } from '@/components/ui/card';\nimport type { Conversation, Person, RelationshipType } from '@mora/core';\nimport { getPatternsForContext, type CommonPattern } from '@mora/core';\nimport { getPerson } from '@/lib/services/person-service';\nimport { getConversationsForPerson } from '@/lib/services/conversation-service';\nimport { usePersonStore } from '@/lib/stores/person-store';\nimport { useUserStore } from '@/lib/stores/user-store';\nimport { PatternList } from '@/components/patterns\n&#96;&#96;&#96;\n\n",
+  "textEditContent": ", ChevronDown, ChevronUp } from 'lucide-react';\nimport { Button } from '@/components/ui/button';\nimport { Card, CardContent } from '@/components/ui/card';\nimport type { Conversation, Person, RelationshipType } from '@mora/core';\nimport { getPatternsForContext, type CommonPattern } from '@mora/core';\nimport { getPerson } from '@/lib/services/person-service';\nimport { getConversationsForPerson } from '@/lib/services/conversation-service';\nimport { usePersonStore } from '@/lib/stores/person-store';\nimport { useUserStore } from '@/lib/stores/user-store';\nimport { PatternList } from '@/components/patterns",
+  "toolCallResult": null
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="copilot_replaceString">
+<details>
+<summary>Tool use: **copilot_replaceString**</summary>
+
+Additional data:
+
+```json
+{
+  "vscodeToolId": "copilot_replaceString",
+  "isHidden": true
+}
+```
+Result:
+
+```json
+{
+  "invocationMessage": "Using \"Replace String in File\"",
+  "isConfirmed": {
+    "type": 1
+  },
+  "content": "&#96;&#96;&#96;tsx\n  const [showPatterns, setShowPatterns] = useState(false);\n\n  const returnTo = useMemo(() =&gt; searchParams.get('returnTo') ?? '/people', [searchParams]);\n\n  // Get relevant patterns based on relationship type\n  const relevantPatterns = useMemo((): CommonPattern[] =&gt; {\n    if (!person) return [];\n    const relType = person.relationshipType;\n    \n    // Map relationship types to pattern contexts\n    if (['spouse_wife', 'spouse_husband', 'partner', 'boyfriend', 'girlfriend'].includes(relType)) {\n      return getPatternsForContext('romantic');\n    }\n    if (['parent', 'father', 'mother', 'sibling', 'child'].includes(relType)) {\n      return getPatternsForContext('family');\n    }\n    if (['manager', 'direct_report', 'peer', 'coworker', 'mentor'].includes(relType)) {\n      return getPatternsForContext('work');\n    }\n    if (relType === 'friend') {\n      return getPatternsForContext('friendship');\n    }\n    // Default: show all\n    return getPatternsForContext('romantic').slice(0, 4);\n  }, [person\n&#96;&#96;&#96;\n\n",
+  "textEditContent": "  const [showPatterns, setShowPatterns] = useState(false);\n\n  const returnTo = useMemo(() =&gt; searchParams.get('returnTo') ?? '/people', [searchParams]);\n\n  // Get relevant patterns based on relationship type\n  const relevantPatterns = useMemo((): CommonPattern[] =&gt; {\n    if (!person) return [];\n    const relType = person.relationshipType;\n    \n    // Map relationship types to pattern contexts\n    if (['spouse_wife', 'spouse_husband', 'partner', 'boyfriend', 'girlfriend'].includes(relType)) {\n      return getPatternsForContext('romantic');\n    }\n    if (['parent', 'father', 'mother', 'sibling', 'child'].includes(relType)) {\n      return getPatternsForContext('family');\n    }\n    if (['manager', 'direct_report', 'peer', 'coworker', 'mentor'].includes(relType)) {\n      return getPatternsForContext('work');\n    }\n    if (relType === 'friend') {\n      return getPatternsForContext('friendship');\n    }\n    // Default: show all\n    return getPatternsForContext('romantic').slice(0, 4);\n  }, [person",
+  "toolCallResult": null
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="copilot_replaceString">
+<details>
+<summary>Tool use: **copilot_replaceString**</summary>
+
+Additional data:
+
+```json
+{
+  "vscodeToolId": "copilot_replaceString",
+  "isHidden": true
+}
+```
+Result:
+
+```json
+{
+  "invocationMessage": "Using \"Replace String in File\"",
+  "isConfirmed": {
+    "type": 1
+  },
+  "content": "&#96;&#96;&#96;tsx\n\n\n          {/* Patterns to Watch Section */}\n          {relevantPatterns.length &gt; 0 &amp;&amp; (\n            &lt;div className=\"mt-8 pt-6 border-t border-zinc-200 dark:border-zinc-800\"&gt;\n              &lt;button\n                onClick={() =&gt; setShowPatterns(!showPatterns)}\n                className=\"flex items-center justify-between w-full text-left group\"\n              &gt;\n                &lt;div&gt;\n                  &lt;h2 className=\"text-sm font-medium text-zinc-900 dark:text-zinc-100\"&gt;\n                    Patterns to watch\n                  &lt;/h2&gt;\n                  &lt;p className=\"text-xs text-zinc-500 mt-0.5\"&gt;\n                    Common behaviors in {\n                      ['spouse_wife', 'spouse_husband', 'partner', 'boyfriend', 'girlfriend'].includes(person?.relationshipType ?? '')\n                        ? 'romantic relationships'\n                        : ['parent', 'father', 'mother', 'sibling', 'child'].includes(person?.relationshipType ?? '')\n                          ? 'family relationships'\n                          : ['manager', 'direct_report', 'peer', 'coworker', 'mentor'].includes(person?.relationshipType ?? '')\n                            ? 'work relationships'\n                            : 'relationships'\n                    }\n                  &lt;/p&gt;\n                &lt;/div&gt;\n                &lt;div className=\"text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300\"&gt;\n                  {showPatterns ? (\n                    &lt;ChevronUp className=\"h-5 w-5\" /&gt;\n                  ) : (\n                    &lt;ChevronDown className=\"h-5 w-5\" /&gt;\n                  )}\n                &lt;/div&gt;\n              &lt;/button&gt;\n              \n              {showPatterns &amp;&amp; (\n                &lt;div className=\"mt-4\"&gt;\n                  &lt;PatternList\n                    patterns={relevantPatterns.slice(0, 4)}\n                    onBookmark={(patternId) =&gt; {\n                      // TODO: persist to user preferences\n                      console.log('[Patterns] User bookmarked:', patternId, 'for person:', personId);\n                    }}\n                  /&gt;\n                &lt;/div&gt;\n              )}\n            &lt;/div&gt;\n          )}\n&#96;&#96;&#96;\n\n",
+  "textEditContent": "\n\n          {/* Patterns to Watch Section */}\n          {relevantPatterns.length &gt; 0 &amp;&amp; (\n            &lt;div className=\"mt-8 pt-6 border-t border-zinc-200 dark:border-zinc-800\"&gt;\n              &lt;button\n                onClick={() =&gt; setShowPatterns(!showPatterns)}\n                className=\"flex items-center justify-between w-full text-left group\"\n              &gt;\n                &lt;div&gt;\n                  &lt;h2 className=\"text-sm font-medium text-zinc-900 dark:text-zinc-100\"&gt;\n                    Patterns to watch\n                  &lt;/h2&gt;\n                  &lt;p className=\"text-xs text-zinc-500 mt-0.5\"&gt;\n                    Common behaviors in {\n                      ['spouse_wife', 'spouse_husband', 'partner', 'boyfriend', 'girlfriend'].includes(person?.relationshipType ?? '')\n                        ? 'romantic relationships'\n                        : ['parent', 'father', 'mother', 'sibling', 'child'].includes(person?.relationshipType ?? '')\n                          ? 'family relationships'\n                          : ['manager', 'direct_report', 'peer', 'coworker', 'mentor'].includes(person?.relationshipType ?? '')\n                            ? 'work relationships'\n                            : 'relationships'\n                    }\n                  &lt;/p&gt;\n                &lt;/div&gt;\n                &lt;div className=\"text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300\"&gt;\n                  {showPatterns ? (\n                    &lt;ChevronUp className=\"h-5 w-5\" /&gt;\n                  ) : (\n                    &lt;ChevronDown className=\"h-5 w-5\" /&gt;\n                  )}\n                &lt;/div&gt;\n              &lt;/button&gt;\n              \n              {showPatterns &amp;&amp; (\n                &lt;div className=\"mt-4\"&gt;\n                  &lt;PatternList\n                    patterns={relevantPatterns.slice(0, 4)}\n                    onBookmark={(patternId) =&gt; {\n                      // TODO: persist to user preferences\n                      console.log('[Patterns] User bookmarked:', patternId, 'for person:', personId);\n                    }}\n                  /&gt;\n                &lt;/div&gt;\n              )}\n            &lt;/div&gt;\n          )}",
+  "toolCallResult": null
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="run_in_terminal">
+<details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+
+Parameters:
+
+```json
+{
+  "kind": "terminal",
+  "terminalToolSessionId": "23b34a85-a54d-4613-ae90-9d3f0faee87f",
+  "terminalCommandId": "tool-e6e8e36a-158b-4157-b466-f18adcb17b9d",
+  "commandLine": {
+    "original": "cd /Users/admin/github/mora &amp;&amp; npm run build 2&gt;&amp;1 | tail -40",
+    "toolEdited": " npm run build 2&gt;&amp;1 | tail -40"
+  },
+  "language": "sh",
+  "autoApproveInfo": {
+    "value": "Auto approved by rules [&#96;npm run build (user)&#96;](command:workbench.action.terminal.chat.openTerminalSettingsLink?%255B3%255D \"View rule in settings\"), [&#96;tail (default)&#96;](command:workbench.action.terminal.chat.openTerminalSettingsLink?%255B7%255D \"View rule in settings\")",
+    "isTrusted": {
+      "enabledCommands": [
+        "workbench.action.terminal.chat.openTerminalSettingsLink"
+      ]
+    },
+    "supportThemeIcons": false,
+    "supportHtml": false,
+    "supportAlertSyntax": false
+  },
+  "terminalCommandState": {
+    "exitCode": 0,
+    "timestamp": 1768088098558,
+    "duration": 8052
+  },
+  "terminalCommandUri": {
+    "$mid": 1,
+    "path": "/675f1a3aeb2544c79813383fe1350851/3",
+    "scheme": "vscode-terminal",
+    "query": "command=tool-e6e8e36a-158b-4157-b466-f18adcb17b9d"
+  },
+  "terminalCommandOutput": {
+    "text": "   - Environments: .env.local\r\n\r\n   Creating an optimized production build ...\r\n ✓ Compiled successfully in 2.3s\r\n   Running TypeScript ...\r\n   Collecting page data using 9 workers ...\r\n   Generating static pages using 9 workers (0/19) ...\r\n   Generating static pages using 9 workers (4/19) \r\n   Generating static pages using 9 workers (9/19) \r\n   Generating static pages using 9 workers (14/19) \r\n ✓ Generating static pages using 9 workers (19/19) in 403.9ms\r\n   Finalizing page optimization ...\r\n\r\nRoute (app)\r\n┌ ○ /\r\n├ ○ /_not-found\r\n├ ○ /conversations\r\n├ ƒ /conversations/[id]\r\n├ ƒ /conversations/[id]/link\r\n├ ○ /login\r\n├ ○ /new\r\n├ ○ /onboarding\r\n├ ○ /onboarding/context\r\n├ ○ /onboarding/identity\r\n├ ○ /onboarding/input\r\n├ ○ /onboarding/person\r\n├ ○ /onboarding/preview\r\n├ ○ /people\r\n├ ƒ /people/[id]\r\n├ ƒ /people/[id]/new-entry\r\n├ ○ /people/new\r\n├ ○ /recover\r\n├ ○ /settings\r\n├ ○ /setup\r\n└ ○ /unlock\r\n\r\n\r\n○  (Static)   prerendered as static content\r\nƒ  (Dynamic)  server-rendered on demand\r\n",
+    "lineCount": 41
+  },
+  "terminalTheme": {
+    "background": "#f8f8f8",
+    "foreground": "#3b3b3b"
+  }
+}
+```
+Additional data:
+
+```json
+{
+  "vscodeToolId": "run_in_terminal",
+  "isHidden": false
+}
+```
+Result:
+
+```json
+{
+  "invocationMessage": "Using \"Run in Terminal\"",
+  "isConfirmed": {
+    "type": 1
+  },
+  "content": "",
+  "textEditContent": "",
+  "toolCallResult": null
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="run_in_terminal">
+<details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+
+Parameters:
+
+```json
+{
+  "kind": "terminal",
+  "terminalToolSessionId": "6ad3ebe9-77e1-4f74-a0e1-cf4493f44288",
+  "terminalCommandId": "tool-ff125978-c521-4316-96bb-6eee9619f420",
+  "commandLine": {
+    "original": "cd /Users/admin/github/mora &amp;&amp; git add -A &amp;&amp; git status",
+    "toolEdited": " git add -A &amp;&amp; git status"
+  },
+  "language": "sh",
+  "autoApproveInfo": {
+    "value": "Auto approved by rules [&#96;git add (user)&#96;](command:workbench.action.terminal.chat.openTerminalSettingsLink?%255B3%255D \"View rule in settings\"), [&#96;/^git(\\s+(-C\\s+\\S+|--no-pager))*\\s+status\\b/ (default)&#96;](command:workbench.action.terminal.chat.openTerminalSettingsLink?%255B7%255D \"View rule in settings\")",
+    "isTrusted": {
+      "enabledCommands": [
+        "workbench.action.terminal.chat.openTerminalSettingsLink"
+      ]
+    },
+    "supportThemeIcons": false,
+    "supportHtml": false,
+    "supportAlertSyntax": false
+  },
+  "terminalCommandState": {
+    "exitCode": 0,
+    "timestamp": 1768088102123,
+    "duration": 66
+  },
+  "terminalCommandUri": {
+    "$mid": 1,
+    "path": "/675f1a3aeb2544c79813383fe1350851/3",
+    "scheme": "vscode-terminal",
+    "query": "command=tool-ff125978-c521-4316-96bb-6eee9619f420"
+  },
+  "terminalCommandOutput": {
+    "text": "On branch main\r\nYour branch is up to date with 'origin/main'.\r\n\r\nChanges to be committed:\r\n  (use \"git restore --staged &lt;file&gt;...\" to unstage)\r\n\u001b[8C\u001b[32mnew file:   .specstory/history/2026-01-10_21-26Z-feedback-on-project-pivot-business-and-technical.md\r\n\u001b[8Cmodified:   apps/web/src/app/(app)/new/page.tsx\r\n\u001b[8Cmodified:   apps/web/src/app/(app)/people/[id]/new-entry/page.tsx\r\n\u001b[8Cmodified:   apps/web/src/app/(app)/people/[id]/page.tsx\r\n\u001b[8Cmodified:   apps/web/src/app/(app)/people/new/page.tsx\r\n\u001b[8Cmodified:   apps/web/src/app/onboarding/input/page.tsx\r\n\u001b[8Cmodified:   apps/web/src/app/onboarding/page.tsx\r\n\u001b[8Cmodified:   apps/web/src/app/onboarding/preview/page.tsx\r\n\u001b[8Cmodified:   apps/web/src/app/page.tsx\r\n\u001b[8Cnew file:   apps/web/src/components/patterns/index.ts\r\n\u001b[8Cnew file:   apps/web/src/components/patterns/pattern-card.tsx\r\n\u001b[8Cnew file:   apps/web/src/components/patterns/pattern-list.tsx\r\n\u001b[8Cmodified:   packages/core/src/index.ts\r\n\u001b[8Cnew file:   packages/core/src/patterns.ts\u001b[0m",
+    "lineCount": 29
+  },
+  "terminalTheme": {
+    "background": "#f8f8f8",
+    "foreground": "#3b3b3b"
+  }
+}
+```
+Additional data:
+
+```json
+{
+  "vscodeToolId": "run_in_terminal",
+  "isHidden": false
+}
+```
+Result:
+
+```json
+{
+  "invocationMessage": "Using \"Run in Terminal\"",
+  "isConfirmed": {
+    "type": 1
+  },
+  "content": "",
+  "textEditContent": "",
+  "toolCallResult": null
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="run_in_terminal">
+<details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+
+Parameters:
+
+```json
+{
+  "kind": "terminal",
+  "terminalToolSessionId": "644db7d9-369c-4cf1-9406-449d5ddc1d6a",
+  "terminalCommandId": "tool-0c475033-01e4-4c4a-bd6d-6731ca4cddbb",
+  "commandLine": {
+    "original": "cd /Users/admin/github/mora &amp;&amp; git commit -m \"feat: Add Common Patterns feature with research-backed communication patterns\n\n- Add patterns.ts to @mora/core with 8 research-backed patterns from attachment theory and Gottman research\n- Create PatternCard and PatternList components in apps/web\n- Integrate patterns into onboarding preview (shown after analysis)\n- Add collapsible 'Patterns to watch' section on Person detail page\n- Patterns are context-aware (romantic/family/work/friendship)\n- Users can bookmark patterns that resonate ('This applies to me')\n\nAlso includes microcopy updates:\n- Landing page: 'Don't reply when triggered'\n- Onboarding: 'Don't reply yet' + 'stomach drop' messaging\n- New entry pages: 'Paste the message that triggered you'\"",
+    "toolEdited": " cd /Users/admin/github/mora &amp;&amp; git commit -m \"feat: Add Common Patterns feature with research-backed communication patterns\n\n- Add patterns.ts to @mora/core with 8 research-backed patterns from attachment theory and Gottman research\n- Create PatternCard and PatternList components in apps/web\n- Integrate patterns into onboarding preview (shown after analysis)\n- Add collapsible 'Patterns to watch' section on Person detail page\n- Patterns are context-aware (romantic/family/work/friendship)\n- Users can bookmark patterns that resonate ('This applies to me')\n\nAlso includes microcopy updates:\n- Landing page: 'Don't reply when triggered'\n- Onboarding: 'Don't reply yet' + 'stomach drop' messaging\n- New entry pages: 'Paste the message that triggered you'\""
+  },
+  "language": "sh",
+  "autoApproveInfo": {
+    "value": "Auto approved by rules [&#96;cd (default)&#96;](command:workbench.action.terminal.chat.openTerminalSettingsLink?%255B7%255D \"View rule in settings\"), [&#96;git commit (user)&#96;](command:workbench.action.terminal.chat.openTerminalSettingsLink?%255B3%255D \"View rule in settings\")",
+    "isTrusted": {
+      "enabledCommands": [
+        "workbench.action.terminal.chat.openTerminalSettingsLink"
+      ]
+    },
+    "supportThemeIcons": false,
+    "supportHtml": false,
+    "supportAlertSyntax": false
+  },
+  "terminalCommandState": {
+    "exitCode": 0,
+    "timestamp": 1768088111065,
+    "duration": 286
+  },
+  "terminalCommandUri": {
+    "$mid": 1,
+    "path": "/675f1a3aeb2544c79813383fe1350851/3",
+    "scheme": "vscode-terminal",
+    "query": "command=tool-0c475033-01e4-4c4a-bd6d-6731ca4cddbb"
+  },
+  "terminalCommandOutput": {
+    "text": "[main 48d75e0] feat: Add Common Patterns feature with research-backed communication patterns\r\n 14 files changed, 1702 insertions(+), 13 deletions(-)\r\n create mode 100644 .specstory/history/2026-01-10_21-26Z-feedback-on-project-pivot-business-and-technical.md\r\n create mode 100644 apps/web/src/components/patterns/index.ts\r\n create mode 100644 apps/web/src/components/patterns/pattern-card.tsx\r\n create mode 100644 apps/web/src/components/patterns/pattern-list.tsx\r\n create mode 100644 packages/core/src/patterns.ts",
+    "lineCount": 12
+  },
+  "terminalTheme": {
+    "background": "#f8f8f8",
+    "foreground": "#3b3b3b"
+  }
+}
+```
+Additional data:
+
+```json
+{
+  "vscodeToolId": "run_in_terminal",
+  "isHidden": false
+}
+```
+Result:
+
+```json
+{
+  "invocationMessage": "Using \"Run in Terminal\"",
+  "isConfirmed": {
+    "type": 1
+  },
+  "content": "",
+  "textEditContent": "",
+  "toolCallResult": null
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="run_in_terminal">
+<details>
+<summary>Tool use: **run_in_terminal**</summary>
+
+
+Parameters:
+
+```json
+{
+  "kind": "terminal",
+  "terminalToolSessionId": "084afab8-1551-4452-83f4-54fd735f1204",
+  "terminalCommandId": "tool-bafc7e31-1227-46f6-8b26-8bd308d588a9",
+  "commandLine": {
+    "original": "cd /Users/admin/github/mora &amp;&amp; git push",
+    "toolEdited": " git push"
+  },
+  "language": "sh",
+  "autoApproveInfo": {
+    "value": "Auto approved by rule [&#96;git push (user)&#96;](command:workbench.action.terminal.chat.openTerminalSettingsLink?%255B3%255D \"View rule in settings\")",
+    "isTrusted": {
+      "enabledCommands": [
+        "workbench.action.terminal.chat.openTerminalSettingsLink"
+      ]
+    },
+    "supportThemeIcons": false,
+    "supportHtml": false,
+    "supportAlertSyntax": false
+  },
+  "terminalCommandState": {
+    "exitCode": 0,
+    "timestamp": 1768088115243,
+    "duration": 1230
+  },
+  "terminalCommandUri": {
+    "$mid": 1,
+    "path": "/675f1a3aeb2544c79813383fe1350851/3",
+    "scheme": "vscode-terminal",
+    "query": "command=tool-bafc7e31-1227-46f6-8b26-8bd308d588a9"
+  },
+  "terminalCommandOutput": {
+    "text": "Enumerating objects: 65, done.\r\nCounting objects: 100% (65/65), done.\r\nDelta compression using up to 10 threads\r\nCompressing objects: 100% (32/32), done.\r\nWriting objects: 100% (36/36), 19.09 KiB | 9.54 MiB/s, done.\r\nTotal 36 (delta 17), reused 0 (delta 0), pack-reused 0\r\nremote: Resolving deltas: 100% (17/17), completed with 17 local objects.\r\nTo https://github.com/ktundwal/mora.git\r\n   d0fab85..48d75e0  main -&gt; main",
+    "lineCount": 11
+  },
+  "terminalTheme": {
+    "background": "#f8f8f8",
+    "foreground": "#3b3b3b"
+  }
+}
+```
+Additional data:
+
+```json
+{
+  "vscodeToolId": "run_in_terminal",
+  "isHidden": false
+}
+```
+Result:
+
+```json
+{
+  "invocationMessage": "Using \"Run in Terminal\"",
+  "isConfirmed": {
+    "type": 1
+  },
+  "content": "",
+  "textEditContent": "",
+  "toolCallResult": null
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
 The user wants me to implement Option B - showing research-backed common patterns that users can bookmark, which becomes seed data for MIRA personalization later.
 
 Let me think about where this should live:
@@ -1146,7 +1978,115 @@ Let me check where Unpacks are displayed first.Let me first understand where Unp
 
 1. Create a patterns data file in `@mora/core`
 2. Create a PatternCard component  
-3. Add a "Common Patterns" section to the onboarding preview page (and later to person detail) Now let me create the patterns data and types in core, then the UI component: 
+3. Add a "Common Patterns" section to the onboarding preview page (and later to person detail) Now let me create the patterns data and types in core, then the UI component: Now let me check the core package's index.ts to export this: Now let me create the PatternCard component. First, let me check how shadcn Card is structured: Now let me create the PatternCard component: Now create a patterns list component for displaying multiple patterns: Now create an index file for the patterns components: Now let me read the full onboarding preview page to see where to add the patterns section: Now I'll add the Common Patterns section to the preview page after the analysis card: Now add the patterns section after the analysis card: Now let's verify the build passes: Build passes. Now let me also add the patterns to the Person detail page so users can see relevant patterns for specific relationships. Let me find that page: This is a good place to add patterns! Let me add a collapsible section for "Patterns to Watch" after the entries grid. First, I'll add the imports and then the section: Now add the state and helper function after the existing useState declarations: Now add the patterns section at the bottom of the page content, after the entries grid: Now let's verify the build still passes: Build passes. Let me commit this work and update the project docs: Done. Here's a summary of what was implemented:
+
+## Common Patterns Feature - Shipped ✅
+
+**New files created:**
+- `patterns.ts` - 8 research-backed patterns from attachment theory and Gottman's research
+- `pattern-card.tsx` - Expandable card with icon, examples, and "This applies to me" button
+- `pattern-list.tsx` - List component with local bookmark state
+
+**Patterns included:**
+1. **Over-Explaining** - Defending with logic when they need to feel heard
+2. **Asking for Reassurance** - "Are we okay?" pattern
+3. **Going Silent** - Withdrawing instead of naming what's wrong
+4. **Keeping Score** - Bringing up past wrongs as ammunition
+5. **Assuming Intent** - Mind-reading their motivations
+6. **Jumping to Solutions** - Fixing before feeling
+7. **Black-and-White Thinking** - "You always/never..."
+8. **Apologizing Too Fast** - Saying sorry to escape discomfort
+
+**Integration points:**
+1. `page.tsx` - Shows 4 patterns after guest analysis
+2. [apps/web/src/app/(app)/people/[id]/page.tsx](apps/web/src/app/(app)/people/%5Bid%5D/page.tsx) - Collapsible "Patterns to watch" section, context-aware based on relationship type
+
+**Next steps for full implementation:**
+- Persist bookmarked patterns to Firestore user preferences
+- Use bookmarks as seed data for MIRA personalization later
+- Potentially show relevant patterns after each Unpack analysis
+
+---
+
+_**User (2026-01-10 23:35Z)**_
+
+are there patterns we could use for work relationships? several books come to mind: Thinking fast and slow, leaders eat last, radical candor, The Five Dysfunctions of a Team, How to Win Friends and Influence People, The Culture Code: The Secrets of Highly Successful Groups, Drive: The Surprising Truth About What Motivates Us, Emotional Intelligence: Why It Can Matter More Than IQ, Grit: The Power of Passion and Perseverance and Crucial Conversations: Tools for Talking When Stakes Are High
+
+---
+
+_**Agent (model copilot/claude-opus-4.5)**_
+
+<tool-use data-tool-type="read" data-tool-name="copilot_readFile">
+<details>
+<summary>Tool use: **copilot_readFile** • Reading [](file:///Users/admin/github/mora/packages/core/src/patterns.ts#1-1), lines 1 to 50</summary>
+
+
+Read [](file:///Users/admin/github/mora/packages/core/src/patterns.ts#1-1), lines 1 to 50
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="copilot_readFile">
+<details>
+<summary>Tool use: **copilot_readFile** • Reading [](file:///Users/admin/github/mora/packages/core/src/patterns.ts#180-180), lines 180 to 210</summary>
+
+
+Read [](file:///Users/admin/github/mora/packages/core/src/patterns.ts#180-180), lines 180 to 210
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="copilot_replaceString">
+<details>
+<summary>Tool use: **copilot_replaceString**</summary>
+
+Additional data:
+
+```json
+{
+  "vscodeToolId": "copilot_replaceString",
+  "isHidden": true
+}
+```
+Result:
+
+```json
+{
+  "invocationMessage": "Using \"Replace String in File\"",
+  "isConfirmed": {
+    "type": 1
+  },
+  "content": "&#96;&#96;&#96;typescript\n\n * cognitive behavioral therapy, and organizational psychology.\n * These are NOT personalized user patterns - they are general patterns \n * that users can \"bookmark\" if they resonate.\n * \n * Source frameworks:\n * - Gottman's Four Horsemen (criticism, contempt, defensiveness, stonewalling)\n * - Attachment Theory (anxious-preoccupied patterns)\n * - Nonviolent Communication (unmet needs under behaviors)\n * - Radical Candor (Kim Scott) - Care personally + challenge directly\n * - Crucial Conversations (Patterson et al) - Safety, mutual purpose\n * - Five Dysfunctions of a Team (Lencioni) - Trust, conflict, commitment\n * - Thinking Fast and Slow (Kahneman) - System 1/2, cognitive biases\n * - Leaders Eat Last (Sinek) - Circle of safety, trust chemicals\n * - Emotional Intelligence (Goleman) - Self-awareness, empathy\n * - Drive (Pink) - Autonomy, mastery, purpose\n * - The Culture Code (Coyle) - Safety signals, vulnerability loops\n&#96;&#96;&#96;\n\n",
+  "textEditContent": "\n * cognitive behavioral therapy, and organizational psychology.\n * These are NOT personalized user patterns - they are general patterns \n * that users can \"bookmark\" if they resonate.\n * \n * Source frameworks:\n * - Gottman's Four Horsemen (criticism, contempt, defensiveness, stonewalling)\n * - Attachment Theory (anxious-preoccupied patterns)\n * - Nonviolent Communication (unmet needs under behaviors)\n * - Radical Candor (Kim Scott) - Care personally + challenge directly\n * - Crucial Conversations (Patterson et al) - Safety, mutual purpose\n * - Five Dysfunctions of a Team (Lencioni) - Trust, conflict, commitment\n * - Thinking Fast and Slow (Kahneman) - System 1/2, cognitive biases\n * - Leaders Eat Last (Sinek) - Circle of safety, trust chemicals\n * - Emotional Intelligence (Goleman) - Self-awareness, empathy\n * - Drive (Pink) - Autonomy, mastery, purpose\n * - The Culture Code (Coyle) - Safety signals, vulnerability loops",
+  "toolCallResult": null
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+The user wants to expand the patterns to include work-specific patterns based on research from well-known business/psychology books. Let me add patterns that draw from these sources:
+
+1. **Thinking Fast and Slow (Kahneman)** - System 1/2 thinking, cognitive biases
+2. **Leaders Eat Last (Sinek)** - Trust circles, safety, oxytocin/cortisol
+3. **Radical Candor (Scott)** - Care personally + challenge directly quadrant
+4. **Five Dysfunctions of a Team (Lencioni)** - Absence of trust, fear of conflict, lack of commitment, avoidance of accountability, inattention to results
+5. **How to Win Friends (Carnegie)** - Don't criticize, give honest appreciation, arouse eager want
+6. **Culture Code (Coyle)** - Safety, vulnerability, purpose
+7. **Drive (Pink)** - Autonomy, mastery, purpose
+8. **Emotional Intelligence (Goleman)** - Self-awareness, self-regulation, motivation, empathy, social skills
+9. **Grit (Duckworth)** - Passion + perseverance, growth mindset
+10. **Crucial Conversations** - Safety, mutual purpose, STATE method
+
+I should add work-focused patterns that draw from these frameworks. Let me create patterns that would resonate with someone in a tense work situation.Great idea! Those are gold mines for work relationship patterns. Let me add work-specific patterns drawing from those frameworks: Now I'll add work-specific patterns drawn from those frameworks. I'll update the header comment and add new patterns: Now add the work-specific patterns after the existing patterns, before the closing bracket: 
 
 ---
 
