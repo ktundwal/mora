@@ -17,7 +17,7 @@ Before planning ANY feature, READ these files in order:
 
 1. **`docs/WHAT_AND_WHY.md`** - Product requirements, user personas, core value prop
 2. **`docs/BUSINESS.md`** - Revenue strategy ("Fear of Hurting" → Mora Pro)
-3. **`docs/NEXT_STEPS.md`** - Current priorities (don't plan something that conflicts)
+3. **`bd` queue** - Current priorities and blockers (`bd ready`, `bd blocked`, `bd show <id>`)
 4. **`docs/STACK.md`** - Technical constraints and decisions
 5. **`.github/copilot-instructions.md`** - Coding principles and rules
 6. **`packages/core/src/types.ts`** - Existing data models
@@ -30,7 +30,7 @@ Ask these questions:
 
 1. **Revenue Impact:** Does this drive "Mora Pro" upgrades?
 2. **Core Value:** Does this help users move from "Fear of Losing" to "Fear of Hurting"?
-3. **Priority Conflict:** Does this conflict with unchecked items in `docs/NEXT_STEPS.md`?
+3. **Priority Conflict:** Does this conflict with the current `bd` priorities?
 4. **Target User:** Does this serve the "Anxious-Preoccupied" partner?
 
 If the answer to questions 1, 2, or 4 is "No", **challenge the request**.
@@ -57,9 +57,12 @@ What does "Done" look like? Include:
 
 ---
 
-## Step 5: Update NEXT_STEPS.md
+## Step 5: Update bd
 
-After planning, add new tasks to `docs/NEXT_STEPS.md` under the appropriate priority section.
+After planning, create or update `bd` issues:
+- Create: `bd create "..." --type feature|task --priority 0-4 --description "..."`
+- Dependencies: `bd dep add <issue> <depends-on>`
+- Claim: `bd update <id> --status in_progress`
 
 ---
 
@@ -86,5 +89,5 @@ As a [user type], I want to [action] so that [benefit].
 - [ ] [Testable outcome]
 
 ### Doc Updates
-[Markdown to add to NEXT_STEPS.md]
+[If needed: which docs to update (PRD/ADR/implementation notes). No task checklists here.]
 ```

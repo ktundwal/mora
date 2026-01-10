@@ -36,10 +36,10 @@ Your goal is to build a high-quality, revenue-generating product that helps "Anx
 - **Target User:** High-functioning but anxious in relationships. They value speed, privacy, and actionable advice.
 
 ## 4. Workflow
-- **Step 1:** Check `docs/NEXT_STEPS.md` for the current priority.
-- **Step 2:** Read `docs/WHAT_AND_WHY.md` (PRD) for requirements.
+- **Step 1:** Use `bd ready` / `bd show <id>` to find the current priority.
+- **Step 2:** Read PRD/design/ADRs as needed (e.g. `docs/design/`, `docs/decisions/`).
 - **Step 3:** Implement using the "Plan -> Test -> Code -> Verify" loop.
-- **Step 4:** Update `docs/NEXT_STEPS.md` when a task is done.
+- **Step 4:** Update/close the `bd` issue when a task is done.
 
 ## 5. Specific Rules
 - **File Paths:** Always use absolute paths or workspace-relative paths.
@@ -66,7 +66,7 @@ Before saying "ready for next priority" or "done", verify ALL of these:
 
 1. **Code works end-to-end** - Tested in browser, not just typecheck
 2. **Docs updated:**
-   - `docs/NEXT_STEPS.md` - Mark completed items, add new ones
+  - `bd` issue status/notes updated (and closed if done)
    - `docs/SETUP.md` - If infra/config changed
    - Relevant `.github/prompts/*.prompt.md` - If workflow changed
 3. **No uncommitted changes** - `git status` is clean

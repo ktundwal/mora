@@ -36,11 +36,12 @@ Run `bd ready` to see what's available:
 
 ### Ready Now
 - **[mora-ddy]** Deploy MIRA-OSS service to Cloud Run (P0)
-- **[mora-6hj]** Connect Stripe billing (P2)
+- **[mora-6hj]** Connect Stripe billing (P1)
 
 ### Blocked (Waiting on Dependencies)
 - **[mora-3ke]** Implement MIRA user ID mapping (P0) → Needs mora-ddy
 - **[mora-r5o]** Build Firebase-MIRA bridge (P0) → Needs mora-ddy
+- **[mora-yk3]** Memory v0 UI (visible recall + correction) (P0) → Needs mora-r5o
 - **[mora-17o]** Build journal entry UI (P1) → Needs mora-r5o
 - **[mora-85j]** Create thread list views (P1) → Needs mora-17o
 
@@ -49,6 +50,8 @@ Run `bd ready` to see what's available:
 mora-ddy (Deploy MIRA)
   ↓
 mora-r5o (Bridge) + mora-3ke (User mapping)
+  ↓
+mora-yk3 (Memory v0 UI)
   ↓
 mora-17o (Journal UI)
   ↓

@@ -129,7 +129,7 @@ Add your Vercel domain to Firebase Auth:
 
 | File | Purpose | Update When |
 |------|---------|-------------|
-| `docs/NEXT_STEPS.md` | Task tracking (done/todo) | Any task completed or added |
+| `bd` issues (`bd ready`, `bd show`, `bd close`) | Task tracking (done/todo) | Any task completed or added |
 | `docs/SETUP.md` | Environment & deployment setup | Infra, config, or tooling changes |
 | `docs/WHAT_AND_WHY.md` | Product requirements (PRD) | Feature scope changes |
 | `.github/prompts/*.prompt.md` | Workflow runbooks for AI | Process or workflow changes |

@@ -17,7 +17,7 @@ Before writing ANY code, READ these files in order:
 
 1. **`.github/copilot-instructions.md`** - Coding principles and critical don'ts
 2. **`docs/PROCESS.md`** - Development workflow (Plan → Test → Code → Verify)
-3. **`docs/NEXT_STEPS.md`** - Current task list (find the specific task to implement)
+3. **`bd` issue** - The specific task to implement (`bd ready` → `bd show <id>`)
 4. **`packages/core/src/types.ts`** - Existing types (import, don't duplicate)
 5. **`docs/STACK.md`** - Tech stack for library choices
 

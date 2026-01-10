@@ -14,7 +14,7 @@ Help build a **revenue-generating product** that moves users from "Fear of Losin
 
 ## Before Taking Any Action
 
-1. Read `docs/NEXT_STEPS.md` for current priorities
+1. Use `bd ready` / `bd show <id>` for current priorities
 2. Read `docs/WHAT_AND_WHY.md` for product requirements
 3. Check `packages/core/src/types.ts` for existing data models
 

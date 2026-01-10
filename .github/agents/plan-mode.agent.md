@@ -25,7 +25,7 @@ Help plan features that:
 Read these documents in order:
 1. `docs/WHAT_AND_WHY.md` - Product requirements
 2. `docs/BUSINESS.md` - Revenue strategy
-3. `docs/NEXT_STEPS.md` - Current priorities
+3. `bd` queue - Current priorities (`bd ready`, `bd blocked`, `bd show <id>`)
 4. `packages/core/src/types.ts` - Existing data models
 
 ## Your Capabilities

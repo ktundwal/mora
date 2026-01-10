@@ -16,7 +16,7 @@ tools: ['codebase', 'runCommands', 'terminalLastCommand', 'problems', 'changes']
 Before generating any status report, READ these files in order:
 
 1. **`docs/WHAT_AND_WHY.md`** - Product requirements and vision
-2. **`docs/NEXT_STEPS.md`** - Current priorities and todo list (SOURCE OF TRUTH for tasks)
+2. **`bd` queue** - Current priorities and blockers (`bd ready`, `bd blocked`, `bd show <id>`, `bd stats`)
 3. **`docs/STACK.md`** - Technical decisions
 4. **`.github/copilot-instructions.md`** - Coding standards and rules
 
@@ -37,7 +37,7 @@ After reading the documents above:
 Summarize:
 - **What's working:** Features that are complete and tested
 - **What's broken:** Any failing tests or build errors
-- **Current priority:** The next unchecked item from `docs/NEXT_STEPS.md`
+- **Current priority:** The top item from `bd ready` (or the claimed `in_progress` issue)
 - **Blockers:** Anything preventing progress
 
 ---
@@ -48,10 +48,10 @@ Summarize:
 ## Status: [DATE]
 
 ### ✅ Complete
-- [List from NEXT_STEPS.md completed items]
+- [Recently closed `bd` issues (if any)]
 
 ### 🚧 Current Priority
-- [Next unchecked priority from NEXT_STEPS.md]
+- [Issue ID + title from `bd ready` / `bd list --status=in_progress`]
 
 ### 🔴 Blockers
 - [Any issues found during verification]
@@ -64,5 +64,5 @@ Summarize:
 
 ## Important
 
-- **DO NOT duplicate the todo list here.** Always reference `docs/NEXT_STEPS.md` as the source of truth.
-- **DO NOT list completed items manually.** Read them from `docs/NEXT_STEPS.md`.
+ - **DO NOT duplicate the backlog here.** Treat `bd` as the source of truth.
+- **DO NOT duplicate the backlog here.** Treat `bd` as the source of truth.

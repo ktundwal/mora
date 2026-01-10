@@ -140,7 +140,7 @@ In VS Code Chat, type:
 ```
 
 What Plan Mode does:
-- Reads `docs/WHAT_AND_WHY.md` and `docs/NEXT_STEPS.md`
+- Reads product context (PRD/design/ADRs) as needed and aligns the plan to the current `bd` queue
 - Searches codebase for existing patterns
 - Validates against business goals (revenue, target user)
 - Outputs a structured plan WITHOUT writing code

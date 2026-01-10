@@ -30,7 +30,7 @@ Moving users from "Fear of Losing" to "Fear of Hurting"
 ## Key Documents
 
 - [docs/WHAT_AND_WHY.md](docs/WHAT_AND_WHY.md) - Product requirements
-- [docs/NEXT_STEPS.md](docs/NEXT_STEPS.md) - Current priorities
+- bd issues (`bd ready`, `bd show <id>`) - Current priorities
 - [docs/STACK.md](docs/STACK.md) - Technical decisions
 - [packages/core/src/types.ts](packages/core/src/types.ts) - Data models
 
