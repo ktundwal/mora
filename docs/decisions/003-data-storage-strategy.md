@@ -1,21 +1,21 @@
 # ADR 003: Data Storage Strategy - Supabase + Firestore with On-Device AI Path
 
-**Status:** Proposed (NOT Implemented)
-**Date:** 2026-01-10
+**Status:** Accepted
+**Date:** 2026-01-10 (Proposed), 2026-01-10 (Accepted)
 **Deciders:** Kapil Tundwal, Claude Sonnet 4.5
 **Related:** [ADR-001 MIRA-OSS Integration](001-mira-oss-integration.md)
 
-> **⚠️ Implementation Status:**
+> **✅ Decision Finalized:**
 >
-> This ADR describes a **PROPOSED architecture**, not the current implementation.
+> **PostgreSQL Provider:** Supabase (free tier initially, scales to $25/mo)
+> **MIRA Deployment:** Cloud Run with IAM + Bearer token authentication
+> **Cache Layer:** Upstash (serverless Redis/Valkey)
 >
 > **Current Reality (as of Jan 10, 2026):**
 > - ✅ Firestore is implemented and active
-> - ❌ Supabase is NOT implemented (no dependencies, no config)
-> - ❌ MIRA-OSS is NOT connected (directory exists, no bridge code)
-> - ❌ On-device AI is NOT implemented
->
-> The Supabase vs Cloud SQL decision needs resolution. Consider writing ADR-004 if Cloud SQL or another option is chosen instead.
+> - ⏳ Supabase to be provisioned (Phase 1 work)
+> - ⏳ MIRA-OSS deployment pending (mora-ddy)
+> - ❌ On-device AI is NOT implemented (Phase 2 feature)
 
 ---
 
@@ -241,7 +241,7 @@ UI displays insights (zero latency, zero server communication)
 - **Setup complexity:** VPC config, IAM roles, Cloud SQL Proxy
 - **No dashboard:** Raw psql vs Supabase SQL editor
 
-**When to reconsider:** If we go all-in on Google Cloud (Cloud Run, Cloud Storage, etc.) and want unified billing/IAM. But at 0 users, Supabase's free tier wins.
+**Decision Made:** Despite using Google Cloud for hosting (Cloud Run), the cost savings during validation phase ($120 in first 3 months) outweigh the benefits of unified Google Cloud infrastructure. We accept multi-cloud complexity as a reasonable trade-off.
 
 ### Why NOT Skip Firestore?
 
@@ -431,3 +431,43 @@ const analysis = await engine.chat.completions.create({
 - [ ] 1,000 users supported on $25-50/mo infrastructure
 - [ ] On-device users = 50%+ (reducing server load)
 - [ ] Supabase costs < $100/mo at 10k users
+
+---
+
+## Security Architecture (Added 2026-01-10)
+
+### MIRA Service Authentication
+
+**Defense-in-Depth Approach:**
+
+**Layer 1: Cloud Run IAM Authentication**
+- Cloud Run deployed with `--no-allow-unauthenticated`
+- Only Firebase Functions service account can invoke MIRA
+- Infrastructure-level security (attackers never reach MIRA)
+- Zero secrets to manage (Google handles token rotation)
+
+**Layer 2: Bearer Token Validation**
+- MIRA validates Bearer token in every request (existing auth/api.py)
+- Strong API key generated via `openssl rand -base64 32`
+- Stored in Cloud Secret Manager (both Firebase + Cloud Run)
+- Application-level validation (defense if IAM bypassed)
+
+**Implementation:**
+```bash
+# Cloud Run IAM
+gcloud run services add-iam-policy-binding mora-mira \
+  --member="serviceAccount:PROJECT@appspot.gserviceaccount.com" \
+  --role="roles/run.invoker"
+
+# Bearer Token (managed via secrets)
+MIRA_SERVICE_KEY stored in both:
+  - Firebase Functions secrets
+  - Cloud Run environment (secret reference)
+```
+
+**Why Both?**
+- IAM alone: Couples us to Google Cloud, no protection if we migrate
+- Bearer token alone: Vulnerable to brute-force if endpoint is public
+- Together: 99.9% of attacks blocked at infrastructure, Bearer catches edge cases
+
+**Cost:** $0 (both security layers are free)

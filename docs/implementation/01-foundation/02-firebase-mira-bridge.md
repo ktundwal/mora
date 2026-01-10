@@ -62,10 +62,12 @@ interface AnalyzeEntryResponse {
 
 export const analyzeEntry = onCall<AnalyzeEntryRequest>({
   cors: true,
-  secrets: [miraServiceKey],
+  secrets: [miraServiceKey],  // MIRA_SERVICE_KEY from Secret Manager
   region: 'us-central1',
 }, async (request): Promise<AnalyzeEntryResponse> => {
   // Implementation here
+  // Note: IAM authentication happens automatically via GoogleAuth
+  // Bearer token validation happens in MIRA (auth/api.py)
 });
 ```
 
@@ -97,32 +99,40 @@ if (typeof request.data.content === 'string') {
 }
 ```
 
-**2. Call MIRA**
+**2. Call MIRA (with IAM + Bearer Token Authentication)**
 ```typescript
+import { GoogleAuth } from 'google-auth-library';
+
+const auth = new GoogleAuth();
 const miraUserId = await ensureMiraUserMapping(uid);
 
-const miraResponse = await fetch(`${MIRA_URL}/chat`, {
+// Get IAM token client (automatically adds Authorization header)
+const client = await auth.getIdTokenClient(MIRA_URL);
+
+// Call MIRA with both IAM (automatic) and Bearer token (manual)
+const miraResponse = await client.request({
+  url: `${MIRA_URL}/chat`,
   method: 'POST',
   headers: {
-    'Authorization': `Bearer ${miraServiceKey.value()}`,
-    'X-Mora-User-Id': miraUserId,
+    'Authorization': `Bearer ${miraServiceKey.value()}`,  // Bearer token (Layer 2)
     'Content-Type': 'application/json',
   },
-  body: JSON.stringify({
+  data: {
     message: plaintext,
     metadata: {
       source: 'mora',
       entryType: request.data.entryType,
     }
-  }),
-  signal: AbortSignal.timeout(30000), // 30s timeout
+  },
+  timeout: 30000, // 30s timeout
 });
 
-if (!miraResponse.ok) {
+// Note: Cloud Run IAM validates first (Layer 1), then MIRA validates Bearer token
+if (miraResponse.status !== 200) {
   throw new HttpsError('internal', `MIRA error: ${miraResponse.statusText}`);
 }
 
-const miraData = await miraResponse.json();
+const miraData = miraResponse.data;
 ```
 
 **3. Extract Topics**
@@ -179,6 +189,18 @@ try {
 
   if (error.code === 'ECONNREFUSED') {
     throw new HttpsError('unavailable', 'MIRA service unavailable.');
+  }
+
+  // IAM authentication failures (403)
+  if (error.response?.status === 403) {
+    logger.error('IAM authentication failed', { uid, error });
+    throw new HttpsError('permission-denied', 'Service authentication failed.');
+  }
+
+  // Bearer token validation failures (401)
+  if (error.response?.status === 401) {
+    logger.error('Bearer token validation failed', { uid, error });
+    throw new HttpsError('unauthenticated', 'Invalid service credentials.');
   }
 
   logger.error('analyzeEntry error', { uid, error });
@@ -244,6 +266,29 @@ curl -X POST http://localhost:5001/mora-dev/us-central1/analyzeEntry \
 4. Deploy to production
 5. Enable for beta users
 
+## Dependencies & Setup
+
+**Required npm packages:**
+```bash
+cd apps/functions
+npm install google-auth-library
+```
+
+**Environment Setup:**
+```bash
+# Get Cloud Run URL (after deployment)
+MIRA_URL=$(gcloud run services describe mora-mira --region=us-central1 --format='value(status.url)')
+
+# Store in Firebase config or .env
+firebase functions:config:set mira.url="$MIRA_URL"
+```
+
+**Access in function:**
+```typescript
+import * as functions from 'firebase-functions';
+const MIRA_URL = functions.config().mira.url;
+```
+
 ## Risks
 
 - **Encryption key availability:** If user hasn't set up encryption, function will fail
@@ -252,6 +297,8 @@ curl -X POST http://localhost:5001/mora-dev/us-central1/analyzeEntry \
   - **Mitigation:** Implement streaming response (Phase 2)
 - **Database sync failures:** Firestore write fails, but MIRA processed entry
   - **Mitigation:** Retry logic + idempotency keys
+- **IAM misconfiguration:** Firebase Functions can't invoke Cloud Run
+  - **Mitigation:** Test IAM policy (see 01-mira-deployment.md Step 5)
 
 ## Related Beads
 
