@@ -1,0 +1,18 @@
+Summarize the following conversation segment using the two-component format: a rich 2-3 sentence synopsis followed by an 8-word display title.
+
+## Conversation:
+{conversation_text}
+
+## Tools Used:
+{tools_used}
+
+Generate your response in exactly this format:
+
+```
+[Your 2-3 sentence synopsis here - include entities, technical details, actions, outcomes]
+
+<mira:display_title>[Your 8-word or shorter telegraphic title here]</mira:display_title>
+<mira:complexity>[1, 2, or 3 based on cognitive complexity]</mira:complexity>
+```
+
+Remember: The synopsis should be searchable and detailed. The display title should be scannable and concise. The complexity score should reflect information density and cognitive load (1=simple, 2=moderate, 3=complex). The `<mira:display_title>` and `<mira:complexity>` tags will be automatically stripped from the synopsis.
