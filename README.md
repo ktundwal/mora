@@ -77,6 +77,7 @@ mora/
 ### Decisions (ADRs)
 - [001: MIRA-OSS Integration](docs/decisions/001-mira-oss-integration.md)
 - [002: Product Positioning](docs/decisions/002-product-positioning.md)
+- [003: Data Storage Strategy](docs/decisions/003-data-storage-strategy.md)
 
 ### Implementation Guides
 - [docs/implementation/](docs/implementation/) — Technical guides for implementing features, organized by phase
