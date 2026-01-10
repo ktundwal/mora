@@ -1,0 +1,11 @@
+{
+  "workingDirectory": "/Users/admin/github/mora",
+  "customInstructions": "CLAUDE.md",
+  "settings": {
+    "tools": {
+      "bash": {
+        "timeout": 300000
+      }
+    }
+  }
+}
