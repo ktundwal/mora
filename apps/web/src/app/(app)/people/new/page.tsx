@@ -54,7 +54,7 @@ function getEntryPlaceholder(tab: 'paste' | 'journal', type?: string): string {
     const t = type as RelationshipType | undefined;
 
     if (tab === 'paste') {
-        return "[10:30 AM] Them: We need to talk...\n[10:31 AM] Me: About what?\n\n(You can also paste emails!)";
+        return "Paste the message that triggered you...\n\n[10:30 AM] Them: We need to talk...\n[10:31 AM] Me: About what?";
     }
 
     if (['spouse_wife', 'spouse_husband', 'partner', 'boyfriend', 'girlfriend'].includes(t || '')) {

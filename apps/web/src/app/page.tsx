@@ -84,11 +84,11 @@ export default function Home() {
         <div className="mx-auto max-w-3xl animate-in fade-in slide-in-from-bottom-8 duration-700">
 
           <h1 className="mb-6 text-5xl font-semibold tracking-tighter sm:text-7xl">
-            Turn hard moments into <span className="text-blue-600 dark:text-blue-500">trust</span>.
+            Don&apos;t reply when <span className="text-blue-600 dark:text-blue-500">triggered</span>.
           </h1>
 
           <p className="mx-auto mb-10 max-w-xl text-xl font-medium leading-relaxed text-zinc-500 dark:text-zinc-400">
-            Navigate high-stakes conversations with clarity. Get the outside perspective you need—private, fast, and judgment-free.
+            Paste the message that made your stomach drop. Get clarity before you make it worse.
           </p>
 
           <div className="flex flex-col items-center gap-4">

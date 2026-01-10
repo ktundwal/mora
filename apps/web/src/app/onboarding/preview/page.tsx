@@ -9,6 +9,8 @@ import { useGuestStore } from '@/lib/stores/guest-store';
 import { getFirebaseFunctions } from '@/lib/firebase';
 import { httpsCallable } from 'firebase/functions';
 import type { GuestAnalysisRequest, GuestAnalysisResponse } from '@mora/core';
+import { COMMON_PATTERNS } from '@mora/core';
+import { PatternList } from '@/components/patterns';
 import Markdown from 'react-markdown';
 
 export default function OnboardingPreviewPage() {
@@ -130,6 +132,22 @@ export default function OnboardingPreviewPage() {
                     </div>
                 )}
             </Card>
+
+            {/* Common Patterns Section - shown after analysis loads */}
+            {analysisStatus === 'success' && (
+                <div className="mb-8">
+                    <PatternList
+                        patterns={COMMON_PATTERNS.slice(0, 4)}
+                        title="Common patterns in hard conversations"
+                        subtitle="Do any of these sound familiar? Tap to save the ones that apply to you."
+                        onBookmark={(patternId) => {
+                            // For now, just log. We'll persist these after auth.
+                            console.log('[Patterns] Guest bookmarked:', patternId);
+                            // Could store in guestStore if needed
+                        }}
+                    />
+                </div>
+            )}
 
             <div className="space-y-6">
                 {analysisStatus === 'success' && (

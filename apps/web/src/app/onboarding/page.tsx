@@ -16,9 +16,9 @@ export default function OnboardingStartPage() {
 
     return (
         <div className="mx-auto flex max-w-md flex-col items-center px-6 py-12 text-center">
-            <h1 className="text-3xl font-bold tracking-tight">Let&apos;s get started</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Don&apos;t reply yet.</h1>
             <p className="mt-4 text-zinc-600 dark:text-zinc-400">
-                Let&apos;s start by getting some context.
+                Let&apos;s understand what&apos;s really happening first.
             </p>
 
             <div className="mt-12 w-full space-y-4">

@@ -233,18 +233,18 @@ function PasteStep({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold">Paste your chat</h2>
+        <h2 className="text-xl font-semibold">Before you reply</h2>
         <p className="mt-1 text-sm text-zinc-500">
-          Copy your WhatsApp conversation and paste it below.
+          Paste the conversation that triggered you.
         </p>
       </div>
 
       <Textarea
-        placeholder="Paste your WhatsApp chat here...
+        placeholder="Paste the message that made your stomach drop...
 
 Example:
-[12/18/24, 10:30 AM] John: Hey, how are you?
-[12/18/24, 10:31 AM] Jane: I'm good, thanks!"
+[12/18/24, 10:30 AM] Partner: We need to talk.
+[12/18/24, 10:31 AM] Me: About what?"
         value={rawText}
         onChange={(e) => onTextChange(e.target.value)}
         className="min-h-[300px] font-mono text-sm"

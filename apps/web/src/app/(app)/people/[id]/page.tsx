@@ -3,14 +3,16 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
-import { ArrowLeft, PlusCircle, Trash2, MessageSquare } from 'lucide-react';
+import { ArrowLeft, PlusCircle, Trash2, MessageSquare, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import type { Conversation, Person, RelationshipType } from '@mora/core';
+import { getPatternsForContext, type CommonPattern } from '@mora/core';
 import { getPerson } from '@/lib/services/person-service';
 import { getConversationsForPerson } from '@/lib/services/conversation-service';
 import { usePersonStore } from '@/lib/stores/person-store';
 import { useUserStore } from '@/lib/stores/user-store';
+import { PatternList } from '@/components/patterns';
 
 const RELATIONSHIP_LABELS: Record<RelationshipType, string> = {
   self: 'Self',
@@ -48,8 +50,31 @@ export default function PersonDetailPage() {
   const [isLoadingPerson, setIsLoadingPerson] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isDeletingPerson, setIsDeletingPerson] = useState(false);
+  const [showPatterns, setShowPatterns] = useState(false);
 
   const returnTo = useMemo(() => searchParams.get('returnTo') ?? '/people', [searchParams]);
+
+  // Get relevant patterns based on relationship type
+  const relevantPatterns = useMemo((): CommonPattern[] => {
+    if (!person) return [];
+    const relType = person.relationshipType;
+    
+    // Map relationship types to pattern contexts
+    if (['spouse_wife', 'spouse_husband', 'partner', 'boyfriend', 'girlfriend'].includes(relType)) {
+      return getPatternsForContext('romantic');
+    }
+    if (['parent', 'father', 'mother', 'sibling', 'child'].includes(relType)) {
+      return getPatternsForContext('family');
+    }
+    if (['manager', 'direct_report', 'peer', 'coworker', 'mentor'].includes(relType)) {
+      return getPatternsForContext('work');
+    }
+    if (relType === 'friend') {
+      return getPatternsForContext('friendship');
+    }
+    // Default: show all
+    return getPatternsForContext('romantic').slice(0, 4);
+  }, [person]);
 
   const getErrorMessage = (e: unknown): string => {
     if (!e) return 'Unknown error';
@@ -187,6 +212,52 @@ export default function PersonDetailPage() {
               </Card>
             </Link>
           </div>
+
+          {/* Patterns to Watch Section */}
+          {relevantPatterns.length > 0 && (
+            <div className="mt-8 pt-6 border-t border-zinc-200 dark:border-zinc-800">
+              <button
+                onClick={() => setShowPatterns(!showPatterns)}
+                className="flex items-center justify-between w-full text-left group"
+              >
+                <div>
+                  <h2 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                    Patterns to watch
+                  </h2>
+                  <p className="text-xs text-zinc-500 mt-0.5">
+                    Common behaviors in {
+                      ['spouse_wife', 'spouse_husband', 'partner', 'boyfriend', 'girlfriend'].includes(person?.relationshipType ?? '')
+                        ? 'romantic relationships'
+                        : ['parent', 'father', 'mother', 'sibling', 'child'].includes(person?.relationshipType ?? '')
+                          ? 'family relationships'
+                          : ['manager', 'direct_report', 'peer', 'coworker', 'mentor'].includes(person?.relationshipType ?? '')
+                            ? 'work relationships'
+                            : 'relationships'
+                    }
+                  </p>
+                </div>
+                <div className="text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300">
+                  {showPatterns ? (
+                    <ChevronUp className="h-5 w-5" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5" />
+                  )}
+                </div>
+              </button>
+              
+              {showPatterns && (
+                <div className="mt-4">
+                  <PatternList
+                    patterns={relevantPatterns.slice(0, 4)}
+                    onBookmark={(patternId) => {
+                      // TODO: persist to user preferences
+                      console.log('[Patterns] User bookmarked:', patternId, 'for person:', personId);
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

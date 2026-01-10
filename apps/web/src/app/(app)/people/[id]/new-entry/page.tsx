@@ -14,7 +14,7 @@ import { parseWhatsAppText, type ParsedMessage, type SpeakerMapping } from '@mor
 
 function getPlaceholder(tab: 'paste' | 'journal', displayName: string): string {
     if (tab === 'paste') {
-        return `[10:30 AM] ${displayName}: We need to talk...\n[10:31 AM] Me: About what?\n\n(You can also paste emails!)`;
+        return `Paste the message that triggered you...\n\n[10:30 AM] ${displayName}: We need to talk...\n[10:31 AM] Me: About what?`;
     }
     return `I'm feeling... because...`;
 }
