@@ -1,13 +1,21 @@
-# Mora Technical Architecture
+# Mora Technical Architecture (Vision / Planned State)
 
 **Last Updated:** January 2026
-**Status:** Active
+**Status:** Vision Document (NOT Current Implementation)
+
+> **⚠️ CRITICAL WARNING ⚠️**
+>
+> This document describes the **PLANNED FUTURE ARCHITECTURE**, not the current implementation.
+>
+> **For actual as-implemented architecture, see [ARCHITECTURE-CURRENT.md](ARCHITECTURE-CURRENT.md).**
+>
+> Many features described here (MIRA integration, journal routes, thread-based organization) **do not yet exist in the codebase**.
 
 ---
 
-## System Overview
+## System Overview (Vision)
 
-Mora is a mobile-first web application with AI-powered memory and analysis capabilities, built on Firebase with MIRA-OSS as the memory engine.
+Mora will be a mobile-first web application with AI-powered memory and analysis capabilities, built on Firebase with MIRA-OSS as the memory engine.
 
 ```
 ┌─────────────────────────────────────────────────────────┐

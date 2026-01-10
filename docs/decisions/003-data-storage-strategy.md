@@ -1,9 +1,21 @@
 # ADR 003: Data Storage Strategy - Supabase + Firestore with On-Device AI Path
 
-**Status:** Accepted
+**Status:** Proposed (NOT Implemented)
 **Date:** 2026-01-10
 **Deciders:** Kapil Tundwal, Claude Sonnet 4.5
 **Related:** [ADR-001 MIRA-OSS Integration](001-mira-oss-integration.md)
+
+> **⚠️ Implementation Status:**
+>
+> This ADR describes a **PROPOSED architecture**, not the current implementation.
+>
+> **Current Reality (as of Jan 10, 2026):**
+> - ✅ Firestore is implemented and active
+> - ❌ Supabase is NOT implemented (no dependencies, no config)
+> - ❌ MIRA-OSS is NOT connected (directory exists, no bridge code)
+> - ❌ On-device AI is NOT implemented
+>
+> The Supabase vs Cloud SQL decision needs resolution. Consider writing ADR-004 if Cloud SQL or another option is chosen instead.
 
 ---
 

@@ -51,6 +51,17 @@ mora/
 └── .beads/                  # bd issue tracker database (git-synced)
 ```
 
+### About mira-OSS
+
+The `mira-OSS/` directory contains an external Python memory engine project (86k+ lines).
+
+**Important:**
+- **Do NOT modify files in `mira-OSS/`** — It's synced from an external repository
+- Changes to mira-OSS should be made upstream, then synced here
+- mira-OSS is currently **not connected** to Mora (integration planned, see ADR-001)
+
+**Current Status:** Directory exists as reference implementation. Integration pending.
+
 ---
 
 ## Tech Stack
@@ -72,19 +83,24 @@ mora/
 
 ### Design Docs
 - [VISION.md](docs/design/VISION.md) — Product vision, strategy, go-to-market
-- [ARCHITECTURE.md](docs/design/ARCHITECTURE.md) — Technical architecture, data flow
+- [ARCHITECTURE-CURRENT.md](docs/design/ARCHITECTURE-CURRENT.md) — **Current implementation** (as-built)
+- [ARCHITECTURE-VISION.md](docs/design/ARCHITECTURE-VISION.md) — Planned future architecture
 
 ### Decisions (ADRs)
-- [001: MIRA-OSS Integration](docs/decisions/001-mira-oss-integration.md)
+- [001: MIRA-OSS Integration](docs/decisions/001-mira-oss-integration.md) (Sidecar approach)
 - [002: Product Positioning](docs/decisions/002-product-positioning.md)
-- [003: Data Storage Strategy](docs/decisions/003-data-storage-strategy.md)
+- [003: Data Storage Strategy](docs/decisions/003-data-storage-strategy.md) (Proposed, not implemented)
 
-### Implementation Guides
-- [docs/implementation/](docs/implementation/) — Technical guides for implementing features, organized by phase
+### Development Guides
+- [CLAUDE.md](CLAUDE.md) — Development practices, principles, anti-patterns
+- [WORKFLOW.md](docs/WORKFLOW.md) — bd workflow, issue tracking, git workflow
+- [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md) — Breaking changes and data migrations
+- [docs/implementation/](docs/implementation/) — Technical guides for implementing features
 
 ### Work Tracking
 - Use `bd` CLI: `bd ready` to see available work
 - Issues tracked in `.beads/issues.jsonl` (git-synced)
+- See [WORKFLOW.md](docs/WORKFLOW.md) for complete bd workflow
 
 ---
 

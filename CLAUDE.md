@@ -291,7 +291,9 @@ npm run clean               # Remove all node_modules
 
 ### Documentation References
 
-- **Architecture**: See commit `c821562` - "docs: add architecture document for onboarding implementation"
+- **Current Architecture**: [docs/design/ARCHITECTURE-CURRENT.md](docs/design/ARCHITECTURE-CURRENT.md) - What's actually implemented
+- **Future Vision**: [docs/design/ARCHITECTURE-VISION.md](docs/design/ARCHITECTURE-VISION.md) - Planned features (MIRA, journal, threads)
+- **Architecture Decisions**: [docs/decisions/](docs/decisions/) - ADRs documenting key technical decisions
 - **Recent Changes**: Check git log for recent onboarding, security, and E2E test updates
 - **TypeScript**: Strict mode enabled, full type coverage expected
 
