@@ -4,6 +4,11 @@ Unified Valkey client for system-wide use.
 Combines auth operations (async) and working memory operations (sync) with
 graceful degradation patterns. Uses Vault for configuration and includes
 integrated TTL persistence monitoring.
+
+MORA MODIFICATION (2026-01-10):
+- Enhanced URL parsing to support redis:// URLs with auth and TLS (for Upstash)
+- Format: redis://default:PASSWORD@host:port or rediss://... for TLS
+- This change must be reapplied after MIRA-OSS updates
 """
 
 import asyncio
@@ -13,6 +18,7 @@ import time
 import threading
 from typing import Optional, Dict, Any, List, Callable
 from dataclasses import dataclass
+from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
 
@@ -51,73 +57,101 @@ class ValkeyClient:
         self._init_connections()
     
     def _load_config(self):
-        """Loads config from Vault first, falls back to VALKEY_URL env var."""
+        """Loads config from Vault first, falls back to VALKEY_URL env var.
+
+        MORA MODIFICATION: Enhanced to support redis:// URLs with auth and TLS (for Upstash).
+        Supported formats:
+        - valkey://host:port (original)
+        - redis://host:port (no auth)
+        - redis://user:password@host:port (with auth)
+        - rediss://user:password@host:port (with auth + TLS)
+        """
         try:
             from clients.vault_client import get_service_config
             self.valkey_url = get_service_config('services', 'valkey_url')
-            logger.info(f"Valkey config loaded from Vault: {self.valkey_url}")
+            logger.info(f"Valkey config loaded from Vault")
         except Exception as e:
             import os
             self.valkey_url = os.getenv('VALKEY_URL', 'valkey://localhost:6379')
-            logger.warning(f"Vault unavailable, using fallback: {self.valkey_url}")
-        
-        # Parse URL for connection parameters
-        if self.valkey_url.startswith('valkey://'):
-            url_parts = self.valkey_url.replace('valkey://', '').split(':')
-            self.host = url_parts[0] if url_parts else 'localhost'
-            self.port = int(url_parts[1]) if len(url_parts) > 1 else 6379
-        else:
-            self.host = 'localhost'
-            self.port = 6379
+            logger.warning(f"Vault unavailable, using fallback VALKEY_URL env var")
+
+        # MORA MODIFICATION: Parse URL properly to extract auth and TLS settings
+        self.host = 'localhost'
+        self.port = 6379
+        self.password = None
+        self.ssl = False
+
+        if self.valkey_url:
+            parsed = urlparse(self.valkey_url)
+
+            # Determine if TLS is needed (rediss:// scheme)
+            self.ssl = parsed.scheme == 'rediss'
+
+            # Extract host and port
+            self.host = parsed.hostname or 'localhost'
+            self.port = parsed.port or 6379
+
+            # Extract password if present
+            if parsed.password:
+                self.password = parsed.password
+                logger.info(f"Valkey connection: {self.host}:{self.port} (auth=yes, ssl={self.ssl})")
+            else:
+                logger.info(f"Valkey connection: {self.host}:{self.port} (auth=no, ssl={self.ssl})")
     
     def _init_connections(self):
         """
         Initialize Valkey connections with fail-fast semantics.
 
         Raises if Valkey is unreachable - system should not start without Valkey.
+
+        MORA MODIFICATION: Added support for password auth and SSL/TLS (for Upstash).
+        Uses from_url() which properly handles rediss:// URLs with SSL.
         """
         global _valkey_pool
 
         import valkey
         import valkey.asyncio as async_valkey
-        from valkey.connection import ConnectionPool
 
-        conn_params = {
-            'host': self.host,
-            'port': self.port,
-            'decode_responses': True,
-            'health_check_interval': 30,
-            'socket_keepalive': True,
-            'socket_keepalive_options': {},
-            'retry_on_timeout': True,
-            'socket_connect_timeout': 5,
-            'socket_timeout': 5
-        }
+        # MORA MODIFICATION: Use from_url which handles auth and SSL properly
+        # The URL format rediss://user:password@host:port enables TLS automatically
+        logger.info(f"Connecting to Valkey: {self.host}:{self.port} (ssl={self.ssl})")
 
-        # Create thread-safe connection pool (like PostgresClient)
-        if _valkey_pool is None:
-            _valkey_pool = ConnectionPool(
-                max_connections=50,  # Same as PostgresClient max
-                **conn_params
-            )
-            logger.info(f"Valkey connection pool created: {self.host}:{self.port} (max=50)")
-
-        # Use pooled connections
-        self._client = valkey.Valkey(connection_pool=_valkey_pool)
+        # Create sync client from URL (handles auth + SSL automatically)
+        self._client = valkey.from_url(
+            self.valkey_url,
+            decode_responses=True,
+            health_check_interval=30,
+            socket_keepalive=True,
+            retry_on_timeout=True,
+            socket_connect_timeout=10,
+            socket_timeout=10
+        )
         self._client.ping()  # Raises if unreachable - system fails to start
 
-        # Create binary client using same connection params but without decode_responses
-        binary_conn_params = conn_params.copy()
-        binary_conn_params['decode_responses'] = False
-        self._binary_client = valkey.Valkey(**binary_conn_params)
+        # Create binary client from URL (for raw bytes like embeddings)
+        self._binary_client = valkey.from_url(
+            self.valkey_url,
+            decode_responses=False,
+            health_check_interval=30,
+            socket_keepalive=True,
+            retry_on_timeout=True,
+            socket_connect_timeout=10,
+            socket_timeout=10
+        )
 
+        # Create async client from URL
         self.valkey = async_valkey.from_url(
             self.valkey_url,
             encoding="utf-8",
-            **{k: v for k, v in conn_params.items() if k not in ['host', 'port']}
+            decode_responses=True,
+            health_check_interval=30,
+            socket_keepalive=True,
+            retry_on_timeout=True,
+            socket_connect_timeout=10,
+            socket_timeout=10
         )
 
-        logger.info(f"Valkey client initialized: {self.host}:{self.port}")
+        logger.info(f"Valkey client initialized: {self.host}:{self.port} (ssl={self.ssl})")
 
     @property
     def valkey_available(self) -> bool:

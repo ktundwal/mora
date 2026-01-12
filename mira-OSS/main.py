@@ -117,18 +117,26 @@ def ensure_single_user(app: FastAPI) -> None:
             prepopulate_user_domaindoc(user_id)
             logger.info(f"Prepopulated domaindoc for user {user_id}")
 
-            api_key = f"mira_{secrets.token_urlsafe(32)}"
-
-            try:
-                from clients.vault_client import _ensure_vault_client
-                vault_client = _ensure_vault_client()
-                # Use patch to add mira_api without overwriting anthropic_key/provider_key
-                vault_client.client.secrets.kv.v2.patch(
-                    path='mira/api_keys',
-                    secret=dict(mira_api=api_key)
-                )
-            except Exception as e:
-                logger.warning(f"Could not store key in Vault: {e}")
+            # MORA MODIFICATION: Support ENV_ONLY_MODE for Cloud Run deployment
+            from clients.vault_client import ENV_ONLY_MODE
+            if ENV_ONLY_MODE:
+                # In ENV_ONLY_MODE, use MIRA_SERVICE_KEY from environment
+                api_key = os.getenv('MIRA_SERVICE_KEY')
+                if not api_key:
+                    api_key = f"mira_{secrets.token_urlsafe(32)}"
+                    logger.warning(f"Generated new API key (not persisted): {api_key[:20]}...")
+            else:
+                api_key = f"mira_{secrets.token_urlsafe(32)}"
+                try:
+                    from clients.vault_client import _ensure_vault_client
+                    vault_client = _ensure_vault_client()
+                    # Use patch to add mira_api without overwriting anthropic_key/provider_key
+                    vault_client.client.secrets.kv.v2.patch(
+                        path='mira/api_keys',
+                        secret=dict(mira_api=api_key)
+                    )
+                except Exception as e:
+                    logger.warning(f"Could not store key in Vault: {e}")
 
             app.state.single_user_id = user_id
             app.state.user_email = default_email
@@ -151,20 +159,32 @@ def ensure_single_user(app: FastAPI) -> None:
         app.state.single_user_id = str(user['id'])
         app.state.user_email = user['email']
 
-        try:
-            from clients.vault_client import _ensure_vault_client
-            vault_client = _ensure_vault_client()
-            secret_data = vault_client.client.secrets.kv.v2.read_secret_version(
-                path='mira/api_keys'
-            )
-            api_key = secret_data['data']['data'].get('mira_api')
+        # MORA MODIFICATION: Support ENV_ONLY_MODE for Cloud Run deployment
+        from clients.vault_client import ENV_ONLY_MODE
+        if ENV_ONLY_MODE:
+            # In ENV_ONLY_MODE, use MIRA_SERVICE_KEY from environment
+            api_key = os.getenv('MIRA_SERVICE_KEY')
+            if not api_key:
+                logger.error("MIRA_SERVICE_KEY environment variable not set")
+                print("\nERROR: MIRA_SERVICE_KEY not set")
+                sys.exit(1)
             app.state.api_key = api_key
+            print(f"\nMIRA Ready (ENV_ONLY_MODE) - User: {user['email']}\n")
+        else:
+            try:
+                from clients.vault_client import _ensure_vault_client
+                vault_client = _ensure_vault_client()
+                secret_data = vault_client.client.secrets.kv.v2.read_secret_version(
+                    path='mira/api_keys'
+                )
+                api_key = secret_data['data']['data'].get('mira_api')
+                app.state.api_key = api_key
 
-            print(f"\nMIRA Ready - User: {user['email']}\n")
-        except Exception as e:
-            logger.error(f"Failed to retrieve API key from Vault: {e}")
-            print("\nERROR: Could not retrieve API key from Vault")
-            sys.exit(1)
+                print(f"\nMIRA Ready - User: {user['email']}\n")
+            except Exception as e:
+                logger.error(f"Failed to retrieve API key from Vault: {e}")
+                print("\nERROR: Could not retrieve API key from Vault")
+                sys.exit(1)
 
 
 

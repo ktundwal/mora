@@ -890,6 +890,12 @@ class LLMProvider:
                 # Fall through to generic provider routing below
 
             # Route to generic provider if endpoint_url is provided
+            # MORA MODIFICATION: Detect Anthropic endpoints and use native client
+            if endpoint_url and "api.anthropic.com" in endpoint_url:
+                self.logger.info(f"Detected Anthropic endpoint, using native client: {model_override}")
+                endpoint_url = None  # Use native client
+                # Fall through to Anthropic API call below
+
             if endpoint_url:
                 # Require model_override; api_key_override is optional for local providers like Ollama
                 if not model_override:

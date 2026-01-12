@@ -29,6 +29,10 @@ import { generateUserExport } from "./export";
 const openaiApiKey = defineSecret("OPENAI_API_KEY");
 const adminProcessToken = defineSecret("ADMIN_PROCESS_TOKEN");
 
+// MIRA integration secrets
+const miraServiceKey = defineSecret("MIRA_SERVICE_KEY");
+const miraServiceUrl = defineSecret("MIRA_SERVICE_URL");
+
 // Initialize Firebase Admin
 initializeApp();
 const auth = getAuth();
@@ -116,6 +120,90 @@ export const proxyChat = onCall<AiProxyRequest>({
   // Do not log prompts or responses (privacy)
   logger.info('proxyChat success', { uid: request.auth.uid, model: result.model });
   return result;
+});
+
+// =============================================================================
+// MIRA Chat Proxy (Memory-Integrated Reasoning Architecture)
+// =============================================================================
+
+interface MiraChatRequest {
+  message: string;
+  tier?: 'fast' | 'balanced' | 'nuanced';
+}
+
+interface MiraChatResponse {
+  continuum_id: string;
+  response: string;
+  metadata: {
+    tools_used: string[];
+    referenced_memories: string[];
+    surfaced_memories: string[];
+    processing_time_ms: number;
+  };
+}
+
+export const miraChat = onCall<MiraChatRequest>({
+  cors: true,
+  enforceAppCheck: false,
+  secrets: [miraServiceKey, miraServiceUrl],
+}, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Sign-in required');
+  }
+
+  const { message, tier } = request.data || {};
+  if (!message) {
+    throw new HttpsError('invalid-argument', 'message is required');
+  }
+
+  const serviceKey = miraServiceKey.value();
+  const baseUrl = miraServiceUrl.value();
+
+  if (!serviceKey || !baseUrl) {
+    throw new HttpsError('failed-precondition', 'MIRA service not configured');
+  }
+
+  try {
+    const response = await fetch(`${baseUrl}/v0/api/chat`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${serviceKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        message,
+        tier: tier || 'balanced',
+      }),
+    });
+
+    if (!response.ok) {
+      const status = response.status;
+      logger.error('MIRA chat failed', { status, uid: request.auth.uid });
+      throw new HttpsError('internal', 'MIRA service error');
+    }
+
+    const json = await response.json() as {
+      success: boolean;
+      data?: MiraChatResponse;
+      error?: { message: string };
+    };
+
+    if (!json.success || !json.data) {
+      throw new HttpsError('internal', json.error?.message || 'MIRA returned invalid response');
+    }
+
+    logger.info('miraChat success', {
+      uid: request.auth.uid,
+      continuum_id: json.data.continuum_id,
+      processing_time_ms: json.data.metadata.processing_time_ms
+    });
+
+    return json.data;
+  } catch (error) {
+    if (error instanceof HttpsError) throw error;
+    logger.error('MIRA chat error', { error: (error as Error).message });
+    throw new HttpsError('internal', 'Failed to communicate with MIRA');
+  }
 });
 
 // =============================================================================
